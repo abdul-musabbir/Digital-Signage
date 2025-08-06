@@ -10,17 +10,21 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
+    "google/apiclient": "^2.18",
+    "google/apiclient-services": "^0.406.0",
     "inertiajs/inertia-laravel": "^2.0",
     "laravel/framework": "^12.0",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9",
     "laravel/wayfinder": "^0.1.6",
     "lorisleiva/laravel-actions": "^2.9",
+    "rahulhaque/laravel-filepond": "^12.2",
     "spatie/laravel-data": "^4.17",
     "spatie/laravel-permission": "^6.21",
     "tightenco/ziggy": "^2.0"
   },
   "require-dev": {
+    "barryvdh/laravel-debugbar": "^3.16",
     "fakerphp/faker": "^1.23",
     "laravel/breeze": "^2.3",
     "laravel/pail": "^1.1",
@@ -43,8 +47,9 @@
     }
   },
   "scripts": {
-    "pint": [
-      "pint"
+    "fix:style": [
+      "pint",
+      "bun run fix:style"
     ],
     "post-autoload-dump": [
       "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

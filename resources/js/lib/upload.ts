@@ -1,52 +1,49 @@
-import axiosRequest from "axios"
-import { axios } from "@/lib/axios"
-import { assetUrl } from "@/lib/urls"
+import axiosRequest from 'axios';
 
-type BucketId = "uploads/images" | "logo"
+import { axios } from '@/lib/axios';
+import { assetUrl } from '@/lib/urls';
 
-function createImageUploader({
-  unique = true,
-  bucketId = "uploads/images",
-  onUploadProgress,
-}: any = {}) {
-  return async (file: File): Promise<string> => {
-    let path: string | undefined
-    let url: string | undefined
-    let headers: any
+type BucketId = 'uploads/images' | 'logo';
 
-    try {
-      const response = await axios.request({
-        method: "POST",
-        url: "/dashboard/generate-presigned-url",
-        data: {
-          unique,
-          bucketId,
-          filename: file.name,
-          mimeType: file.type,
-          contentLength: file.size,
-        },
-      })
+function createImageUploader({ unique = true, bucketId = 'uploads/images', onUploadProgress }: any = {}) {
+    return async (file: File): Promise<string> => {
+        let path: string | undefined;
+        let url: string | undefined;
+        let headers: any;
 
-      url = response?.data?.url
-      headers = response?.data?.headers
-    } catch (e: any) {
-      throw e
-    }
+        try {
+            const response = await axios.request({
+                method: 'POST',
+                url: '/dashboard/generate-presigned-url',
+                data: {
+                    unique,
+                    bucketId,
+                    filename: file.name,
+                    mimeType: file.type,
+                    contentLength: file.size,
+                },
+            });
 
-    await axiosRequest.request({
-      method: "PUT",
-      url: url!,
-      data: file,
-      onUploadProgress,
-      headers: {
-        "Content-Type": file.type,
-        "Content-Disposition": `inline; filename="${file.name}"`,
-        ...headers,
-      },
-    })
+            url = response?.data?.url;
+            headers = response?.data?.headers;
+        } catch (e: any) {
+            throw e;
+        }
 
-    return assetUrl(path!)
-  }
+        await axiosRequest.request({
+            method: 'PUT',
+            url: url!,
+            data: file,
+            onUploadProgress,
+            headers: {
+                'Content-Type': file.type,
+                'Content-Disposition': `inline; filename="${file.name}"`,
+                ...headers,
+            },
+        });
+
+        return assetUrl(path!);
+    };
 }
 
-export { createImageUploader }
+export { createImageUploader };
