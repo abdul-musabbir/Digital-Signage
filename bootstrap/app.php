@@ -22,7 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'video' => VideoStreamingMiddleware::class
+            'video' => VideoStreamingMiddleware::class,
+            'streaming.optimize' => \App\Http\Middleware\StreamingOptimizeMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

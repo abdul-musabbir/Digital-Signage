@@ -10,45 +10,209 @@ use Google\Service\Drive\DriveFile;
 use Google\Service\Drive\Permission;
 use Google\Service\Exception as GoogleServiceException;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use RuntimeException;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\RequestException;
 
 /**
- * Google Drive Service for file management operations
+ * Google Drive Service with Super Fast Video Streaming
  * 
- * Provides comprehensive file upload, download, update, and deletion functionality
- * with automatic folder management and public sharing capabilities.
+ * Implements YouTube-style chunk-by-chunk streaming for large video files
+ * with intelligent buffering and range request optimization.
  */
 class GoogleDriveService
 {
     private GoogleClient $client;
     private GoogleDrive $drive;
+    private HttpClient $httpClient;
     private ?string $defaultFolderId;
 
+    // Streaming optimization constants
+    private const CHUNK_SIZE = 1024 * 1024; // 1MB chunks for optimal streaming
+    private const ACCESS_TOKEN_CACHE_KEY = 'google_drive_access_token';
+    private const TOKEN_CACHE_DURATION = 3300; // 55 minutes (tokens expire in 1 hour)
+
     /**
-     * Initialize Google Drive service with OAuth2 credentials
-     * 
-     * @throws RuntimeException When required credentials are missing
+     * Initialize Google Drive service with optimized HTTP client
      */
     public function __construct()
     {
         $this->initializeCredentials();
         $this->setupGoogleClient();
         $this->drive = new GoogleDrive($this->client);
+
+        // Initialize optimized HTTP client for streaming
+        $this->httpClient = new HttpClient([
+            'timeout' => 30,
+            'connect_timeout' => 5,
+            'read_timeout' => 30,
+            'verify' => true,
+            'http_errors' => false, // Handle errors manually
+            'stream' => true, // Enable streaming
+        ]);
     }
 
     /**
-     * Upload a file to Google Drive
+     * CRITICAL METHOD: Get byte range from Google Drive file - YouTube-style streaming
+     * This method enables super fast chunk-by-chunk loading
      *
-     * @param string      $filePath     Absolute path to the local file
-     * @param string|null $fileName     Optional custom filename for Drive
-     * @param string|null $mimeType     Optional MIME type (auto-detected if null)
-     * @param string|null $parentFolder Folder name or ID (uses default if null)
-     * 
-     * @return array{id: string, name: string, url: string} File information
-     * @throws InvalidArgumentException When file doesn't exist
-     * @throws RuntimeException When upload fails
+     * @param string $fileId Google Drive file ID
+     * @param int $start Starting byte position
+     * @param int $length Number of bytes to fetch
+     * @return string Binary chunk data
+     * @throws RuntimeException When range request fails
      */
+    public function getRange(string $fileId, int $start, int $length): string
+    {
+        $accessToken = $this->getCachedAccessToken();
+        $end = $start + $length - 1;
+
+        $url = "https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media";
+
+        Log::debug("Fetching range for {$fileId}: bytes {$start}-{$end}");
+
+        try {
+            $response = $this->httpClient->get($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$accessToken}",
+                    'Range' => "bytes={$start}-{$end}",
+                    'Accept-Encoding' => 'identity', // Disable compression for streaming
+                ],
+                'stream' => true,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode === 206 || $statusCode === 200) {
+                $body = $response->getBody();
+                $content = '';
+
+                // Read the stream in small chunks to avoid memory issues
+                while (!$body->eof()) {
+                    $chunk = $body->read(8192); // 8KB read buffer
+                    if ($chunk === '') {
+                        break;
+                    }
+                    $content .= $chunk;
+                }
+
+                Log::debug("Successfully fetched " . strlen($content) . " bytes");
+                return $content;
+            }
+
+            if ($statusCode === 401) {
+                // Token expired, refresh and retry
+                Log::info("Access token expired, refreshing...");
+                $this->refreshAccessToken();
+                return $this->getRange($fileId, $start, $length); // Recursive retry
+            }
+
+            $errorBody = $response->getBody()->getContents();
+            Log::error("Range request failed", [
+                'file_id' => $fileId,
+                'status_code' => $statusCode,
+                'range' => "bytes={$start}-{$end}",
+                'error' => $errorBody,
+            ]);
+
+            throw new RuntimeException("Range request failed with status {$statusCode}: {$errorBody}");
+        } catch (RequestException $e) {
+            Log::error("HTTP request failed for range fetch", [
+                'file_id' => $fileId,
+                'range' => "bytes={$start}-{$end}",
+                'error' => $e->getMessage(),
+            ]);
+
+            throw new RuntimeException("Failed to fetch file range: " . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Get optimized access token with caching
+     * Reduces API calls and improves streaming performance
+     */
+    private function getCachedAccessToken(): string
+    {
+        return Cache::remember(self::ACCESS_TOKEN_CACHE_KEY, self::TOKEN_CACHE_DURATION, function () {
+            $token = $this->client->getAccessToken();
+            if (is_array($token) && isset($token['access_token'])) {
+                return $token['access_token'];
+            }
+
+            // Refresh token if needed
+            $this->refreshAccessToken();
+            $token = $this->client->getAccessToken();
+
+            return is_array($token) ? $token['access_token'] : $token;
+        });
+    }
+
+    /**
+     * Refresh access token and update cache
+     */
+    private function refreshAccessToken(): void
+    {
+        try {
+            $refreshToken = config('filesystems.disks.google.refreshToken');
+            $this->client->fetchAccessTokenWithRefreshToken($refreshToken);
+
+            // Update cache with new token
+            $token = $this->client->getAccessToken();
+            $accessToken = is_array($token) ? $token['access_token'] : $token;
+            Cache::put(self::ACCESS_TOKEN_CACHE_KEY, $accessToken, self::TOKEN_CACHE_DURATION);
+
+            Log::info("Access token refreshed successfully");
+        } catch (\Exception $e) {
+            Cache::forget(self::ACCESS_TOKEN_CACHE_KEY);
+            throw new RuntimeException("Failed to refresh access token: " . $e->getMessage(), 0, $e);
+        }
+    }
+
+    /**
+     * Get file info with enhanced caching for streaming metadata
+     */
+    public function getFileInfo(string $fileId): ?DriveFile
+    {
+        $cacheKey = "drive_file_info_{$fileId}";
+
+        return Cache::remember($cacheKey, 600, function () use ($fileId) { // 10 minutes cache
+            try {
+                return $this->drive->files->get($fileId, [
+                    'fields' => 'id, name, mimeType, size, createdTime, modifiedTime, webViewLink'
+                ]);
+            } catch (GoogleServiceException $exception) {
+                if (in_array($exception->getCode(), [404, 403])) {
+                    return null;
+                }
+
+                Log::error('Failed to get file info from Google Drive', [
+                    'file_id' => $fileId,
+                    'error' => $exception->getMessage(),
+                    'code' => $exception->getCode(),
+                ]);
+
+                throw new RuntimeException(
+                    'Failed to retrieve file information: ' . $exception->getMessage(),
+                    $exception->getCode(),
+                    $exception
+                );
+            }
+        });
+    }
+
+    /**
+     * Enhanced streaming URL with direct access optimization
+     */
+    public function getDirectStreamingUrl(string $fileId): string
+    {
+        $accessToken = $this->getCachedAccessToken();
+        return "https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media&access_token={$accessToken}";
+    }
+
+    // Keep all your existing methods below...
+
     public function upload(
         string $filePath,
         ?string $fileName = null,
@@ -57,8 +221,8 @@ class GoogleDriveService
     ): array {
         $this->validateFilePath($filePath);
 
-        // Increase memory limit only for this operation
-        ini_set('memory_limit', '1024M'); // or higher, depending on your file size
+        // ini_set('memory_limit', '1024M');
+        ini_set('memory_limit', '3G');
 
         $targetFolderId = $this->resolveFolder($parentFolder);
         $fileName = $fileName ?? basename($filePath);
@@ -104,13 +268,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Download file content by ID with existence check
-     *
-     * @param string $fileId Google Drive file ID
-     * @return string|null File content or null if file not found
-     * @throws RuntimeException When download fails (excluding 404)
-     */
     public function download(string $fileId): ?string
     {
         try {
@@ -121,7 +278,6 @@ class GoogleDriveService
 
             return $content;
         } catch (GoogleServiceException $exception) {
-            // Handle 404 (file not found) gracefully
             if ($exception->getCode() === 404) {
                 Log::warning('File not found for download', [
                     'file_id' => $fileId,
@@ -130,7 +286,6 @@ class GoogleDriveService
                 return null;
             }
 
-            // Handle 403 (access denied)
             if ($exception->getCode() === 403) {
                 Log::error('Access denied for file download', [
                     'file_id' => $fileId,
@@ -158,18 +313,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Update an existing file with new content
-     *
-     * @param string      $fileId      Google Drive file ID
-     * @param string      $newFilePath Path to the new file content
-     * @param string|null $newFileName Optional new filename
-     * @param string|null $mimeType    Optional MIME type
-     * 
-     * @return string Updated file ID
-     * @throws InvalidArgumentException When file doesn't exist
-     * @throws RuntimeException When update fails
-     */
     public function update(
         string $fileId,
         string $newFilePath,
@@ -214,16 +357,14 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Delete a file from Google Drive
-     *
-     * @param string $fileId Google Drive file ID
-     * @throws RuntimeException When deletion fails
-     */
     public function delete(string $fileId): void
     {
         try {
             $this->drive->files->delete($fileId);
+
+            // Clear cache
+            Cache::forget("drive_file_info_{$fileId}");
+            Cache::forget("video_info_{$fileId}");
 
             Log::info('File deleted from Google Drive', ['file_id' => $fileId]);
         } catch (GoogleServiceException $exception) {
@@ -240,87 +381,16 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Get file metadata from Google Drive
-     *
-     * @param string $fileId Google Drive file ID
-     * @return DriveFile|null File metadata object or null if not found
-     * @throws RuntimeException When retrieval fails (excluding 404)
-     */
-    public function getFileInfo(string $fileId): ?DriveFile
-    {
-        try {
-            return $this->drive->files->get($fileId, [
-                'fields' => 'id, name, mimeType, size, createdTime, modifiedTime, webViewLink'
-            ]);
-        } catch (GoogleServiceException $exception) {
-            // Handle 404 (file not found) gracefully
-            if ($exception->getCode() === 404) {
-                Log::warning('File not found in Google Drive', [
-                    'file_id' => $fileId,
-                    'error' => $exception->getMessage(),
-                ]);
-                return null;
-            }
-
-            // Handle 403 (access denied) with helpful message
-            if ($exception->getCode() === 403) {
-                Log::error('Access denied to Google Drive file', [
-                    'file_id' => $fileId,
-                    'error' => $exception->getMessage(),
-                ]);
-
-                throw new RuntimeException(
-                    'Access denied to file. Please check if the service account has permission to access this file.',
-                    $exception->getCode(),
-                    $exception
-                );
-            }
-
-            Log::error('Failed to get file info from Google Drive', [
-                'file_id' => $fileId,
-                'error' => $exception->getMessage(),
-                'code' => $exception->getCode(),
-            ]);
-
-            throw new RuntimeException(
-                'Failed to retrieve file information: ' . $exception->getMessage(),
-                $exception->getCode(),
-                $exception
-            );
-        }
-    }
-
-    /**
-     * Check if a file exists in Google Drive
-     *
-     * @param string $fileId Google Drive file ID
-     * @return bool True if file exists and is accessible
-     */
     public function fileExists(string $fileId): bool
     {
         return $this->getFileInfo($fileId) !== null;
     }
 
-    /**
-     * Validate file ID format
-     *
-     * @param string $fileId Google Drive file ID to validate
-     * @return bool True if format is valid
-     */
     public function isValidFileId(string $fileId): bool
     {
-        // Google Drive file IDs are typically 25-44 characters long
-        // and contain alphanumeric characters, hyphens, and underscores
         return preg_match('/^[a-zA-Z0-9_-]{25,44}$/', $fileId) === 1;
     }
 
-    /**
-     * Get file metadata with existence check
-     *
-     * @param string $fileId Google Drive file ID
-     * @return array|null File information array or null if not found
-     */
     public function getFileInfoSafe(string $fileId): ?array
     {
         if (!$this->isValidFileId($fileId)) {
@@ -347,12 +417,6 @@ class GoogleDriveService
         ];
     }
 
-    /**
-     * Make a file publicly readable
-     *
-     * @param string $fileId Google Drive file ID
-     * @throws RuntimeException When permission setting fails
-     */
     public function makePublic(string $fileId): void
     {
         $permission = new Permission([
@@ -378,34 +442,16 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Get public download URL for a file
-     *
-     * @param string $fileId Google Drive file ID
-     * @return string Public download URL
-     */
     public function getDownloadUrl(string $fileId): string
     {
         return "https://drive.google.com/uc?id={$fileId}&export=download";
     }
 
-    /**
-     * Get public download URL for a file (alternative method)
-     *
-     * @param string $fileId Google Drive file ID
-     * @return string Public download URL
-     */
     public function getPublicUrl(string $fileId): string
     {
         return $this->getDownloadUrl($fileId);
     }
 
-    /**
-     * Get public view URL for a file (ensures file is public)
-     *
-     * @param string $fileId Google Drive file ID
-     * @return string Public view URL
-     */
     public function getViewUrl(string $fileId): string
     {
         try {
@@ -430,12 +476,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Get streaming URL for video files
-     *
-     * @param string $fileId Google Drive file ID
-     * @return string Streaming URL
-     */
     public function getStreamingUrl(string $fileId): string
     {
         try {
@@ -450,13 +490,6 @@ class GoogleDriveService
         return "https://drive.google.com/uc?id={$fileId}";
     }
 
-    /**
-     * List files in a specific folder
-     *
-     * @param string|null $folderId Folder ID (null for root)
-     * @param int         $maxResults Maximum number of results
-     * @return array List of files
-     */
     public function listFiles(?string $folderId = null, int $maxResults = 100): array
     {
         $query = "trashed = false";
@@ -497,11 +530,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Initialize Google OAuth2 credentials from configuration
-     *
-     * @throws RuntimeException When required credentials are missing
-     */
     private function initializeCredentials(): void
     {
         $clientId = config('filesystems.disks.google.clientId');
@@ -517,11 +545,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Setup and authenticate Google client
-     *
-     * @throws RuntimeException When authentication fails
-     */
     private function setupGoogleClient(): void
     {
         $clientId = config('filesystems.disks.google.clientId');
@@ -549,38 +572,21 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Resolve folder ID from folder name or ID
-     *
-     * @param string|null $folderIdOrName Folder ID or name (null for default/root)
-     * @return string|null Resolved folder ID
-     */
     private function resolveFolder(?string $folderIdOrName): ?string
     {
         if ($folderIdOrName === null) {
             return $this->defaultFolderId;
         }
 
-        // Check if it's already a folder ID (contains alphanumeric characters and dashes/underscores)
         if (preg_match('/^[a-zA-Z0-9_-]{25,}$/', $folderIdOrName)) {
             return $folderIdOrName;
         }
 
-        // It's a folder name - find or create it
         return $this->getOrCreateFolder($folderIdOrName, $this->defaultFolderId);
     }
 
-    /**
-     * Find existing folder by name or create new one
-     *
-     * @param string      $folderName    Name of the folder
-     * @param string|null $parentFolderId Parent folder ID (null for root)
-     * @return string Folder ID
-     * @throws RuntimeException When folder creation fails
-     */
     private function getOrCreateFolder(string $folderName, ?string $parentFolderId = null): string
     {
-        // Search for existing folder
         $escapedName = addcslashes($folderName, "'\\");
         $query = "name = '{$escapedName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
 
@@ -595,12 +601,10 @@ class GoogleDriveService
                 'spaces' => 'drive',
             ]);
 
-            // Return existing folder ID if found
             if (!empty($response->files) && isset($response->files[0]->id)) {
                 return $response->files[0]->id;
             }
 
-            // Create new folder if not found
             return $this->createFolder($folderName, $parentFolderId);
         } catch (GoogleServiceException $exception) {
             Log::error('Failed to search for folder in Google Drive', [
@@ -617,14 +621,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Create a new folder in Google Drive
-     *
-     * @param string      $folderName    Name of the folder to create
-     * @param string|null $parentFolderId Parent folder ID (null for root)
-     * @return string Created folder ID
-     * @throws RuntimeException When folder creation fails
-     */
     private function createFolder(string $folderName, ?string $parentFolderId = null): string
     {
         $folderMetadata = new DriveFile([
@@ -664,12 +660,6 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Validate that a file path exists
-     *
-     * @param string $filePath File path to validate
-     * @throws InvalidArgumentException When file doesn't exist
-     */
     private function validateFilePath(string $filePath): void
     {
         if (!file_exists($filePath)) {
@@ -681,16 +671,9 @@ class GoogleDriveService
         }
     }
 
-    /**
-     * Detect MIME type of a file
-     *
-     * @param string $filePath File path
-     * @return string MIME type
-     */
     private function detectMimeType(string $filePath): string
     {
         $mimeType = mime_content_type($filePath);
-
         return $mimeType ?: 'application/octet-stream';
     }
 }

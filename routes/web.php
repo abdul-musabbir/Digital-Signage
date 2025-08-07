@@ -10,16 +10,18 @@ use Inertia\Inertia;
 use Inertia\Response;
 use RahulHaque\Filepond\Facades\Filepond;
 
-Route::redirect('/', '/login');
-Route::get('/sign-in', fn () => Inertia::render('auth/sign-in/index'));
-Route::get('/sign-up', fn () => Inertia::render('auth/sign-up/index'));
-Route::get('/forgot-pass', fn () => Inertia::render('auth/forgot-password/index'));
-Route::get('/otp', fn () => Inertia::render('auth/otp/index'));
-Route::get('/401', fn () => Inertia::render('errors/unauthorized-error'));
-Route::get('/403', fn () => Inertia::render('errors/forbidden'));
-Route::get('/404', fn () => Inertia::render('errors/not-found-error'));
-Route::get('/500', fn () => Inertia::render('errors/general-error'));
-Route::get('/503', fn () => Inertia::render('errors/maintenance-error'));
+// Route::redirect('/', '/login');
+Route::get('/', fn() => inertia('welcome'));
+
+Route::get('/sign-in', fn() => Inertia::render('auth/sign-in/index'));
+Route::get('/sign-up', fn() => Inertia::render('auth/sign-up/index'));
+Route::get('/forgot-pass', fn() => Inertia::render('auth/forgot-password/index'));
+Route::get('/otp', fn() => Inertia::render('auth/otp/index'));
+Route::get('/401', fn() => Inertia::render('errors/unauthorized-error'));
+Route::get('/403', fn() => Inertia::render('errors/forbidden'));
+Route::get('/404', fn() => Inertia::render('errors/not-found-error'));
+Route::get('/500', fn() => Inertia::render('errors/general-error'));
+Route::get('/503', fn() => Inertia::render('errors/maintenance-error'));
 
 Route::post('/videos/store', function (Request $request) {
     try {
@@ -34,13 +36,13 @@ Route::post('/videos/store', function (Request $request) {
         $errors = [];
 
         // Create a unique batch identifier to prevent conflicts
-        $batchId = time().'_'.uniqid();
+        $batchId = time() . '_' . uniqid();
 
         foreach ($request->videos as $index => $video) {
             try {
                 // Create a unique directory for each file to prevent overwrites
-                $uniqueId = $index.'_'.microtime(true).'_'.uniqid();
-                $targetDirectory = 'videos_'.$batchId.'/'.$uniqueId;
+                $uniqueId = $index . '_' . microtime(true) . '_' . uniqid();
+                $targetDirectory = 'videos_' . $batchId . '/' . $uniqueId;
 
                 Log::info('Processing video', [
                     'index' => $index,
@@ -72,14 +74,14 @@ Route::post('/videos/store', function (Request $request) {
                 // If the fileInfo doesn't include extension, we need to find the actual file
                 $storagePath = storage_path('app/public/');
                 $possiblePaths = [
-                    $storagePath.$fileInfo['location'],
-                    $storagePath.$fileInfo['location'].'.'.$originalExtension,
-                    $storagePath.$targetDirectory.'.'.$originalExtension,
+                    $storagePath . $fileInfo['location'],
+                    $storagePath . $fileInfo['location'] . '.' . $originalExtension,
+                    $storagePath . $targetDirectory . '.' . $originalExtension,
                 ];
 
                 // Also check if the file was stored with the original name
-                if (is_dir($storagePath.dirname($fileInfo['location']))) {
-                    $files = glob($storagePath.dirname($fileInfo['location']).'/*');
+                if (is_dir($storagePath . dirname($fileInfo['location']))) {
+                    $files = glob($storagePath . dirname($fileInfo['location']) . '/*');
                     $possiblePaths = array_merge($possiblePaths, $files);
                 }
 
@@ -95,12 +97,12 @@ Route::post('/videos/store', function (Request $request) {
 
                 // If still not found, try to find any file in the target directory
                 if (! $fullPath) {
-                    $targetDir = $storagePath.dirname($fileInfo['location']);
+                    $targetDir = $storagePath . dirname($fileInfo['location']);
                     if (is_dir($targetDir)) {
                         $files = array_diff(scandir($targetDir), ['.', '..']);
                         if (! empty($files)) {
                             $fileName = reset($files);
-                            $fullPath = $targetDir.'/'.$fileName;
+                            $fullPath = $targetDir . '/' . $fileName;
                             $fileInfo['location'] = str_replace($storagePath, '', $fullPath);
                         }
                     }
@@ -113,8 +115,8 @@ Route::post('/videos/store', function (Request $request) {
                         'storage_path' => $storagePath,
                         'target_directory' => $targetDirectory,
                         'checked_paths' => $possiblePaths,
-                        'directory_contents' => is_dir($storagePath.dirname($fileInfo['location'])) ?
-                            scandir($storagePath.dirname($fileInfo['location'])) : 'Directory not found',
+                        'directory_contents' => is_dir($storagePath . dirname($fileInfo['location'])) ?
+                            scandir($storagePath . dirname($fileInfo['location'])) : 'Directory not found',
                     ]);
 
                     $error = "Video file not found after upload: {$video['name']}";
@@ -145,7 +147,7 @@ Route::post('/videos/store', function (Request $request) {
                     'mime_type' => $mimeType,
                 ]);
             } catch (\Exception $e) {
-                $error = "Error processing video {$video['name']}: ".$e->getMessage();
+                $error = "Error processing video {$video['name']}: " . $e->getMessage();
                 $errors[] = $error;
 
                 Log::error('Exception while processing video', [
@@ -168,7 +170,7 @@ Route::post('/videos/store', function (Request $request) {
         // Check if any videos were processed successfully
         if (empty($processedVideos) && ! empty($errors)) {
             return back()->withErrors([
-                'filepond' => 'No videos could be processed. Errors: '.implode(', ', $errors),
+                'filepond' => 'No videos could be processed. Errors: ' . implode(', ', $errors),
             ]);
         }
 
@@ -192,7 +194,7 @@ Route::post('/videos/store', function (Request $request) {
         } else {
             $successMessage = "{$successfulVideos} out of {$totalVideos} file(s) uploaded successfully";
             if (! empty($errors)) {
-                $successMessage .= '. Some files had errors: '.implode(', ', $errors);
+                $successMessage .= '. Some files had errors: ' . implode(', ', $errors);
             }
         }
 
@@ -212,7 +214,7 @@ Route::post('/videos/store', function (Request $request) {
 })->middleware('auth');
 
 Route::group(['prefix' => '/dashboard', 'middleware' => ['auth', 'verified']], function () {
-    require __DIR__.'/dashboard.php';
+    require __DIR__ . '/dashboard.php';
 });
 
 require base_path('vendor/rahulhaque/laravel-filepond/routes/web.php');

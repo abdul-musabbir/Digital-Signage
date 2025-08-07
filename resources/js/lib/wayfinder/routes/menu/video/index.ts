@@ -1,7 +1,7 @@
 import { queryParams, type QueryParams } from './../../../wayfinder'
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 export const stream = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -19,7 +19,7 @@ stream.definition = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 stream.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -44,7 +44,7 @@ stream.url = (args: { id: string | number } | [id: string | number ] | string | 
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 stream.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -57,7 +57,7 @@ stream.get = (args: { id: string | number } | [id: string | number ] | string | 
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 stream.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {

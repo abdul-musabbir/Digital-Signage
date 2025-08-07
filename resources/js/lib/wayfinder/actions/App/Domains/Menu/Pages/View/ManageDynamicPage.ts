@@ -1,7 +1,7 @@
 import { queryParams, type QueryParams } from './../../../../../../wayfinder'
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/view/{id}'
 */
 const index0e25963496dad8a992353bb911d47855 = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -19,7 +19,7 @@ index0e25963496dad8a992353bb911d47855.definition = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/view/{id}'
 */
 index0e25963496dad8a992353bb911d47855.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -44,7 +44,7 @@ index0e25963496dad8a992353bb911d47855.url = (args: { id: string | number } | [id
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/view/{id}'
 */
 index0e25963496dad8a992353bb911d47855.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -57,7 +57,7 @@ index0e25963496dad8a992353bb911d47855.get = (args: { id: string | number } | [id
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/view/{id}'
 */
 index0e25963496dad8a992353bb911d47855.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -70,7 +70,7 @@ index0e25963496dad8a992353bb911d47855.head = (args: { id: string | number } | [i
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/{id}'
 */
 const indexcd48874a6527238c1a6f1d2f4754b098 = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -88,7 +88,7 @@ indexcd48874a6527238c1a6f1d2f4754b098.definition = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/{id}'
 */
 indexcd48874a6527238c1a6f1d2f4754b098.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -113,7 +113,7 @@ indexcd48874a6527238c1a6f1d2f4754b098.url = (args: { id: string | number } | [id
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/{id}'
 */
 indexcd48874a6527238c1a6f1d2f4754b098.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -126,7 +126,7 @@ indexcd48874a6527238c1a6f1d2f4754b098.get = (args: { id: string | number } | [id
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:33
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
 * @route '/dashboard/menu/{id}'
 */
 indexcd48874a6527238c1a6f1d2f4754b098.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -144,7 +144,7 @@ export const index = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 export const stream = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -162,7 +162,7 @@ stream.definition = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 stream.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -187,7 +187,7 @@ stream.url = (args: { id: string | number } | [id: string | number ] | string | 
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 stream.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -200,7 +200,7 @@ stream.get = (args: { id: string | number } | [id: string | number ] | string | 
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:97
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:105
 * @route '/dashboard/menu/stream/{id}'
 */
 stream.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
