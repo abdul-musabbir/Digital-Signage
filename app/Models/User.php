@@ -30,12 +30,10 @@ class User extends Authenticatable
         'address',
     ];
 
-
     public function menus(): HasMany
     {
         return $this->hasMany(Menu::class, 'client_id');
     }
-
 
     /**
      * The attributes that should be hidden for serialization.

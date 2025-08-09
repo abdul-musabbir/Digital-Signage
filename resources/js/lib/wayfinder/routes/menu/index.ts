@@ -1,5 +1,4 @@
 import { queryParams, type QueryParams } from './../../wayfinder'
-import video from './video'
 /**
 * @see \App\Domains\Menu\Pages\ManageMenuPage::index
 * @see app/Domains/Menu/Pages/ManageMenuPage.php:13
@@ -55,10 +54,10 @@ index.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/view/{id}'
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:25
+* @route '/dashboard/menu/{menu}'
 */
-export const view = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+export const view = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'get',
 } => ({
@@ -68,40 +67,46 @@ export const view = (args: { id: string | number } | [id: string | number ] | st
 
 view.definition = {
     methods: ['get','head'],
-    url: '/dashboard/menu/view/{id}',
+    url: '/dashboard/menu/{menu}',
 }
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/view/{id}'
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:25
+* @route '/dashboard/menu/{menu}'
 */
-view.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
+view.url = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { id: args }
+        args = { menu: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'google_drive_id' in args) {
+        args = { menu: args.google_drive_id }
     }
 
     if (Array.isArray(args)) {
         args = {
-            id: args[0],
+            menu: args[0],
         }
     }
 
     const parsedArgs = {
-        id: args.id,
+        menu: typeof args.menu === 'object'
+        ? args.menu.google_drive_id
+        : args.menu,
     }
 
     return view.definition.url
-            .replace('{id}', parsedArgs.id.toString())
+            .replace('{menu}', parsedArgs.menu.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/view/{id}'
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:25
+* @route '/dashboard/menu/{menu}'
 */
-view.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+view.get = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'get',
 } => ({
@@ -111,14 +116,89 @@ view.get = (args: { id: string | number } | [id: string | number ] | string | nu
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/view/{id}'
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:25
+* @route '/dashboard/menu/{menu}'
 */
-view.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+view.head = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'head',
 } => ({
     url: view.url(args, options),
+    method: 'head',
+})
+
+/**
+* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:60
+* @route '/dashboard/menu/stream/{menu}'
+*/
+export const stream = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+    url: string,
+    method: 'get',
+} => ({
+    url: stream.url(args, options),
+    method: 'get',
+})
+
+stream.definition = {
+    methods: ['get','head'],
+    url: '/dashboard/menu/stream/{menu}',
+}
+
+/**
+* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:60
+* @route '/dashboard/menu/stream/{menu}'
+*/
+stream.url = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
+    if (typeof args === 'string' || typeof args === 'number') {
+        args = { menu: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'google_drive_id' in args) {
+        args = { menu: args.google_drive_id }
+    }
+
+    if (Array.isArray(args)) {
+        args = {
+            menu: args[0],
+        }
+    }
+
+    const parsedArgs = {
+        menu: typeof args.menu === 'object'
+        ? args.menu.google_drive_id
+        : args.menu,
+    }
+
+    return stream.definition.url
+            .replace('{menu}', parsedArgs.menu.toString())
+            .replace(/\/+$/, '') + queryParams(options)
+}
+
+/**
+* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:60
+* @route '/dashboard/menu/stream/{menu}'
+*/
+stream.get = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+    url: string,
+    method: 'get',
+} => ({
+    url: stream.url(args, options),
+    method: 'get',
+})
+
+/**
+* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::stream
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:60
+* @route '/dashboard/menu/stream/{menu}'
+*/
+stream.head = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+    url: string,
+    method: 'head',
+} => ({
+    url: stream.url(args, options),
     method: 'head',
 })
 
@@ -163,80 +243,73 @@ upload.post = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 })
 
 /**
-* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::show
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/{id}'
+* @see \App\Domains\Menu\Actions\DeleteMenu::destroy
+* @see app/Domains/Menu/Actions/DeleteMenu.php:17
+* @route '/dashboard/menu/destroy/{menu}'
 */
-export const show = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+export const destroy = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
-    method: 'get',
+    method: 'delete',
 } => ({
-    url: show.url(args, options),
-    method: 'get',
+    url: destroy.url(args, options),
+    method: 'delete',
 })
 
-show.definition = {
-    methods: ['get','head'],
-    url: '/dashboard/menu/{id}',
+destroy.definition = {
+    methods: ['delete'],
+    url: '/dashboard/menu/destroy/{menu}',
 }
 
 /**
-* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::show
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/{id}'
+* @see \App\Domains\Menu\Actions\DeleteMenu::destroy
+* @see app/Domains/Menu/Actions/DeleteMenu.php:17
+* @route '/dashboard/menu/destroy/{menu}'
 */
-show.url = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
+destroy.url = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
     if (typeof args === 'string' || typeof args === 'number') {
-        args = { id: args }
+        args = { menu: args }
+    }
+
+    if (typeof args === 'object' && !Array.isArray(args) && 'google_drive_id' in args) {
+        args = { menu: args.google_drive_id }
     }
 
     if (Array.isArray(args)) {
         args = {
-            id: args[0],
+            menu: args[0],
         }
     }
 
     const parsedArgs = {
-        id: args.id,
+        menu: typeof args.menu === 'object'
+        ? args.menu.google_drive_id
+        : args.menu,
     }
 
-    return show.definition.url
-            .replace('{id}', parsedArgs.id.toString())
+    return destroy.definition.url
+            .replace('{menu}', parsedArgs.menu.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
-* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::show
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/{id}'
+* @see \App\Domains\Menu\Actions\DeleteMenu::destroy
+* @see app/Domains/Menu/Actions/DeleteMenu.php:17
+* @route '/dashboard/menu/destroy/{menu}'
 */
-show.get = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+destroy.delete = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
-    method: 'get',
+    method: 'delete',
 } => ({
-    url: show.url(args, options),
-    method: 'get',
-})
-
-/**
-* @see \App\Domains\Menu\Pages\View\ManageDynamicPage::show
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:35
-* @route '/dashboard/menu/{id}'
-*/
-show.head = (args: { id: string | number } | [id: string | number ] | string | number, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
-    url: string,
-    method: 'head',
-} => ({
-    url: show.url(args, options),
-    method: 'head',
+    url: destroy.url(args, options),
+    method: 'delete',
 })
 
 const menu = {
     index,
     view,
+    stream,
     upload,
-    video,
-    show,
+    destroy,
 }
 
 export default menu

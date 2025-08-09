@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Lorisleiva\Actions\Concerns\AsController;
 use RahulHaque\Filepond\Facades\Filepond;
@@ -28,7 +27,7 @@ class UploadFiles
         'webm',
         'mkv',
         '3gp',
-        'm4v'
+        'm4v',
     ];
 
     private const GOOGLE_DRIVE_VIDEO_MIMES = [
@@ -40,7 +39,7 @@ class UploadFiles
         'video/webm',
         'video/x-matroska',
         'video/3gpp',
-        'video/x-m4v'
+        'video/x-m4v',
     ];
 
     public function __construct(
@@ -57,7 +56,7 @@ class UploadFiles
         ]);
 
         $errors = [];
-        $batchId = time() . '_' . uniqid();
+        $batchId = time().'_'.uniqid();
         $videos = $request->videos;
 
         // Group videos by unique Filepond path to avoid duplicates
@@ -67,7 +66,7 @@ class UploadFiles
             $videosByPath[$path][] = $video;
         }
 
-        Log::info("Processing filepond paths", [
+        Log::info('Processing filepond paths', [
             'paths' => array_keys($videosByPath),
             'total_videos' => count($videos),
         ]);
@@ -80,12 +79,13 @@ class UploadFiles
                 $uniqueId = uniqid();
                 $targetDirectory = "videos_{$batchId}/{$uniqueId}";
 
-                Log::info("Moving Filepond temp file", ['path' => $path, 'target_directory' => $targetDirectory]);
+                Log::info('Moving Filepond temp file', ['path' => $path, 'target_directory' => $targetDirectory]);
 
                 $filepondField = Filepond::field($path);
-                if (!$filepondField) {
+                if (! $filepondField) {
                     $errors[] = "Filepond temporary file not found or expired: {$canonicalName} (Path: {$path})";
-                    Log::error("Filepond field not found", ['path' => $path, 'name' => $canonicalName]);
+                    Log::error('Filepond field not found', ['path' => $path, 'name' => $canonicalName]);
+
                     continue;
                 }
 
@@ -93,25 +93,26 @@ class UploadFiles
 
                 if (empty($fileInfo['location'])) {
                     $errors[] = "Failed to process video: {$canonicalName} (FilePond processing failed)";
-                    Log::error("Filepond moveTo failed", ['path' => $path, 'file_info' => $fileInfo]);
+                    Log::error('Filepond moveTo failed', ['path' => $path, 'file_info' => $fileInfo]);
+
                     continue;
                 }
 
-                Log::info("Filepond file moved successfully", ['location' => $fileInfo['location']]);
+                Log::info('Filepond file moved successfully', ['location' => $fileInfo['location']]);
 
                 $storagePath = storage_path('app/public/');
                 $originalExtension = strtolower(pathinfo($canonicalName, PATHINFO_EXTENSION));
 
                 // Find the actual file full path
                 $possiblePaths = [
-                    $storagePath . $fileInfo['location'],
-                    $storagePath . $fileInfo['location'] . '.' . $originalExtension,
-                    $storagePath . dirname($fileInfo['location']) . '/' . basename($fileInfo['location']) . '.' . $originalExtension,
+                    $storagePath.$fileInfo['location'],
+                    $storagePath.$fileInfo['location'].'.'.$originalExtension,
+                    $storagePath.dirname($fileInfo['location']).'/'.basename($fileInfo['location']).'.'.$originalExtension,
                 ];
 
-                $directoryPath = $storagePath . dirname($fileInfo['location']);
+                $directoryPath = $storagePath.dirname($fileInfo['location']);
                 if (is_dir($directoryPath)) {
-                    $files = glob($directoryPath . '/*');
+                    $files = glob($directoryPath.'/*');
                     $possiblePaths = array_merge($possiblePaths, $files);
                 }
 
@@ -124,27 +125,30 @@ class UploadFiles
                     }
                 }
 
-                if (!$fullPath) {
+                if (! $fullPath) {
                     $errors[] = "Video file not found after upload: {$canonicalName}";
+
                     continue;
                 }
 
                 $fileSize = filesize($fullPath);
                 if ($fileSize === 0) {
                     $errors[] = "Video file is empty: {$canonicalName}";
+
                     continue;
                 }
 
                 $mimeType = $this->getMimeType($fullPath, $originalExtension);
 
-                if (!$this->isValidVideoFormat($originalExtension, $mimeType)) {
+                if (! $this->isValidVideoFormat($originalExtension, $mimeType)) {
                     $errors[] = "Unsupported video format: {$canonicalName} (Extension: {$originalExtension})";
+
                     continue;
                 }
 
                 $cleanFileName = $this->cleanFileName($canonicalName);
 
-                Log::info("Uploading to Google Drive", [
+                Log::info('Uploading to Google Drive', [
                     'original_name' => $canonicalName,
                     'clean_name' => $cleanFileName,
                     'file_size' => $fileSize,
@@ -153,10 +157,11 @@ class UploadFiles
                 ]);
 
                 // Upload file (make sure your GoogleDriveService uses resumable upload for large files)
-                $uploadedFile = $this->drive->upload($fullPath, $cleanFileName, $mimeType, 'Client_' . $request->client);
+                $uploadedFile = $this->drive->upload($fullPath, $cleanFileName, $mimeType, 'Client_'.$request->client);
 
-                if (!$uploadedFile || !isset($uploadedFile['id'])) {
+                if (! $uploadedFile || ! isset($uploadedFile['id'])) {
                     $errors[] = "Failed to upload to Google Drive: {$canonicalName}";
+
                     continue;
                 }
 
@@ -172,27 +177,27 @@ class UploadFiles
                 $type = str_starts_with($mimeType, 'video/') ? 'video' : (str_starts_with($mimeType, 'image/') ? 'image' : 'file');
 
                 Menu::create([
-                    'client_id'       => $request->client,
-                    'created_by'      => Auth::id(),
-                    'name'            => $canonicalName,
-                    'type'            => $type,
-                    'local_path'      => $fileInfo['location'],
+                    'client_id' => $request->client,
+                    'created_by' => Auth::id(),
+                    'name' => $canonicalName,
+                    'type' => $type,
+                    'local_path' => $fileInfo['location'],
                     'google_drive_id' => $uploadedFile['id'],
                     'google_drive_url' => $driveUrl,
-                    'mime_type'       => $mimeType,
-                    'size'            => $fileSize,
-                    'description'     => null,
-                    'uploaded_at'     => now(),
+                    'mime_type' => $mimeType,
+                    'size' => $fileSize,
+                    'description' => null,
+                    'uploaded_at' => now(),
                 ]);
 
                 $uploadedFilesByPath[$path] = [
-                    'original_name'    => $canonicalName,
-                    'stored_path'      => $fileInfo['location'],
-                    'full_path'        => $fullPath,
-                    'size'             => $fileSize,
-                    'mime_type'        => $mimeType,
-                    'local_url'        => Storage::url($fileInfo['location']),
-                    'google_drive_id'  => $uploadedFile['id'],
+                    'original_name' => $canonicalName,
+                    'stored_path' => $fileInfo['location'],
+                    'full_path' => $fullPath,
+                    'size' => $fileSize,
+                    'mime_type' => $mimeType,
+                    'local_url' => Storage::url($fileInfo['location']),
+                    'google_drive_id' => $uploadedFile['id'],
                     'google_drive_name' => $uploadedFile['name'],
                     'google_drive_url' => $driveUrl,
                 ];
@@ -203,7 +208,7 @@ class UploadFiles
                     'google_drive_url' => $driveUrl,
                 ]);
             } catch (\Exception $e) {
-                $errors[] = "Error processing video {$videosWithSamePath[0]['name']}: " . $e->getMessage();
+                $errors[] = "Error processing video {$videosWithSamePath[0]['name']}: ".$e->getMessage();
                 Log::error('Exception while processing video', [
                     'video_name' => $videosWithSamePath[0]['name'],
                     'error' => $e->getMessage(),
@@ -216,7 +221,7 @@ class UploadFiles
         $processedVideos = [];
         foreach ($videos as $video) {
             $path = trim($video['path']);
-            if (!isset($uploadedFilesByPath[$path])) {
+            if (! isset($uploadedFilesByPath[$path])) {
                 continue;
             }
             $uploadData = $uploadedFilesByPath[$path];
@@ -231,15 +236,15 @@ class UploadFiles
             'errors' => $errors,
         ]);
 
-        if (empty($processedVideos) && !empty($errors)) {
-            return back()->withErrors(['filepond' => 'No videos processed. Errors: ' . implode(', ', $errors)]);
+        if (empty($processedVideos) && ! empty($errors)) {
+            return back()->withErrors(['filepond' => 'No videos processed. Errors: '.implode(', ', $errors)]);
         }
 
         $total = count($request->videos);
         $success = count($processedVideos);
         $message = $success === $total
             ? "{$success} file(s) uploaded successfully."
-            : "{$success} of {$total} file(s) uploaded. Errors: " . implode(', ', $errors);
+            : "{$success} of {$total} file(s) uploaded. Errors: ".implode(', ', $errors);
 
         return back()->with('success', $message);
     }
@@ -248,11 +253,11 @@ class UploadFiles
     {
         $mimeType = mime_content_type($filePath);
 
-        if (!$mimeType || $mimeType === 'application/octet-stream') {
+        if (! $mimeType || $mimeType === 'application/octet-stream') {
             $mimeType = $this->getMimeTypeFromExtension($extension);
         }
 
-        if (in_array($extension, self::SUPPORTED_VIDEO_FORMATS) && !str_starts_with($mimeType, 'video/')) {
+        if (in_array($extension, self::SUPPORTED_VIDEO_FORMATS) && ! str_starts_with($mimeType, 'video/')) {
             $mimeType = $this->getMimeTypeFromExtension($extension);
         }
 
@@ -295,7 +300,7 @@ class UploadFiles
 
         if (empty($cleaned)) {
             $extension = pathinfo($filename, PATHINFO_EXTENSION);
-            $cleaned = 'video_' . time() . ($extension ? '.' . $extension : '');
+            $cleaned = 'video_'.time().($extension ? '.'.$extension : '');
         }
 
         return $cleaned;

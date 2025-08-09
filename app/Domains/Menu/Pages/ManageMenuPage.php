@@ -14,7 +14,7 @@ class ManageMenuPage extends Controller
     {
         return inertia('menu/index', [
             'clients' => $this->getClients(),
-            'menus' => $this->getMenus()
+            'menus' => $this->getMenus(),
         ]);
     }
 
@@ -37,7 +37,7 @@ class ManageMenuPage extends Controller
         return User::select('id', 'name') // only necessary fields
             ->role('customer')
             ->with([
-                'menus:id,client_id,name,type,local_path,google_drive_id,google_drive_url,mime_type,size,description,created_at'
+                'menus:id,client_id,name,type,local_path,google_drive_id,google_drive_url,mime_type,size,description,created_at',
             ])
             ->get()
             ->toArray();

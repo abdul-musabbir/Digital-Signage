@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +11,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Menu extends Model
 {
     use SoftDeletes;
+
     protected $table = 'menus';
+
     protected $fillable = [
         'client_id',
         'created_by',
@@ -22,6 +26,7 @@ class Menu extends Model
         'size',
         'description',
         'uploaded_at',
+        'created_at',
     ];
 
     public function createdBy(): BelongsTo
@@ -32,5 +37,10 @@ class Menu extends Model
     public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'client_id');
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'google_drive_id';
     }
 }

@@ -1,31 +1,66 @@
+import DeleteMenuComponent from './delete-menu';
 import { Link } from '@inertiajs/react';
-import { Calendar, Download, Edit3, Eye, FileText, HardDrive, ImageIcon, MoreVertical, Play, Trash2 } from 'lucide-react';
+import { Calendar, Download, Edit3, Eye, FileText, HardDrive, ImageIcon, MoreVertical, Play } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import DeleteMenu from '@/lib/wayfinder/actions/App/Domains/Menu/Actions/DeleteMenu';
 
+import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
-const FileCard = ({ file }) => {
-    const getFileIcon = () => {
+// Type definitions
+interface FileItem {
+    id: string | number;
+    name: string;
+    type: 'image' | 'video' | 'file';
+    google_drive_url?: string;
+    google_drive_id: string;
+    size: number;
+    created_at: string;
+    extension?: string;
+}
+
+interface Menu {
+    id: string | number;
+    name: string;
+    menus: FileItem[];
+}
+
+interface FileCardProps {
+    file: FileItem;
+}
+
+interface ProfessionalFileCardsProps {
+    menu: Menu;
+}
+
+interface TypeStyles {
+    bg: string;
+    border: string;
+    text: string;
+}
+
+const FileCard: React.FC<FileCardProps> = ({ file }) => {
+    const getFileIcon = (): JSX.Element | null => {
         const iconProps = 'w-16 h-16 drop-shadow-sm';
-        if (file?.type === 'video') {
+        if (file.type === 'video') {
             return <Play className={`${iconProps} text-blue-500`} />;
-        } else if (file?.type === 'file') {
+        } else if (file.type === 'file') {
             return <FileText className={`${iconProps} text-violet-500`} />;
         }
         return null;
     };
 
-    const renderPreview = () => {
-        if (file?.type === 'image') {
+    const renderPreview = (): JSX.Element => {
+        if (file.type === 'image') {
             return (
                 <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                     <img
-                        src={file?.google_drive_url}
-                        alt={file?.name}
-                        className={`h-full w-full object-cover transition-all duration-700 ease-out`}
+                        src={file.google_drive_url || ''}
+                        alt={file.name}
+                        className="h-full w-full object-cover transition-all duration-700 ease-out"
                     />
 
                     {/* Type Badge */}
@@ -36,7 +71,7 @@ const FileCard = ({ file }) => {
                     </div>
                 </div>
             );
-        } else if (file?.type === 'video') {
+        } else if (file.type === 'video') {
             return (
                 <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -75,18 +110,18 @@ const FileCard = ({ file }) => {
         }
     };
 
-    const getFileTypeIcon = () => {
+    const getFileTypeIcon = (): JSX.Element => {
         const iconClass = 'w-4 h-4';
-        if (file?.type === 'image') {
+        if (file.type === 'image') {
             return <ImageIcon className={`${iconClass} text-emerald-600`} />;
-        } else if (file?.type === 'video') {
+        } else if (file.type === 'video') {
             return <Play className={`${iconClass} text-blue-600`} />;
         } else {
             return <FileText className={`${iconClass} text-violet-600`} />;
         }
     };
 
-    const formatFileSize = (bytes) => {
+    const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 B';
         const k = 1024;
         const sizes = ['B', 'KB', 'MB', 'GB'];
@@ -94,8 +129,8 @@ const FileCard = ({ file }) => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     };
 
-    const getTypeStyles = () => {
-        switch (file?.type) {
+    const getTypeStyles = (): TypeStyles => {
+        switch (file.type) {
             case 'image':
                 return {
                     bg: 'bg-emerald-50/80',
@@ -131,18 +166,26 @@ const FileCard = ({ file }) => {
                             {getFileTypeIcon()}
                         </div>
 
-                        <div className="min-w-0 flex-1 space-y-1">
-                            <h3 className="truncate text-sm font-semibold leading-tight text-gray-900 dark:text-white" title={file?.name}>
-                                {file?.name}
-                            </h3>
+                        <div className="w-full min-w-0 flex-1">
+                            <div className="flex w-full items-center justify-between">
+                                <h3 className="truncate text-sm font-semibold leading-tight text-gray-900 dark:text-white" title={file.name}>
+                                    {file.name}
+                                </h3>
+
+                                <div>
+                                    <Badge variant="outline" className="text-green-600">
+                                        Active
+                                    </Badge>
+                                </div>
+                            </div>
                             <div className="flex items-center gap-4 text-xs text-gray-500">
                                 <div className="flex items-center gap-1">
                                     <HardDrive className="h-3 w-3" />
-                                    <span className="font-medium">{formatFileSize(file?.size)}</span>
+                                    <span className="font-medium">{formatFileSize(file.size)}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                     <Calendar className="h-3 w-3" />
-                                    <span>{new Date(file?.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                                    <span>{new Date(file.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                                 </div>
                             </div>
                         </div>
@@ -160,7 +203,7 @@ const FileCard = ({ file }) => {
                     <div className="grid grid-cols-2 gap-2">
                         <div className="grid grid-cols-2 gap-1.5">
                             <Link
-                                href={location.pathname + '/' + file.google_drive_id}
+                                href={`${window.location.pathname}/${file.google_drive_id}`}
                                 className={cn(
                                     buttonVariants({ variant: 'outline', size: 'sm' }),
                                     'h-9 rounded-lg px-2 text-xs font-medium transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700',
@@ -190,14 +233,7 @@ const FileCard = ({ file }) => {
                                 Save
                             </Button>
 
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 rounded-lg px-2 text-xs font-medium transition-all duration-200 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
-                            >
-                                <Trash2 className="mr-1 h-3.5 w-3.5" />
-                                Delete
-                            </Button>
+                            <DeleteMenuComponent action={DeleteMenu.url(String(file.id))} />
                         </div>
                     </div>
                 </div>
@@ -206,15 +242,15 @@ const FileCard = ({ file }) => {
     );
 };
 
-const ProfessionalFileCards = ({ menu }) => {
+const ProfessionalFileCards: React.FC<ProfessionalFileCardsProps> = ({ menu }) => {
     return (
-        <div className="">
+        <div>
             <div>
                 <h1 className="text-xl font-bold">{menu.name}</h1>
             </div>
             <Separator className="mb-4 mt-2" />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {menu?.menus.map((file) => (
+                {menu.menus.map((file) => (
                     <FileCard key={file.id} file={file} />
                 ))}
             </div>

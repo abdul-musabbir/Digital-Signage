@@ -18,6 +18,7 @@
     "laravel/tinker": "^2.9",
     "laravel/wayfinder": "^0.1.6",
     "lorisleiva/laravel-actions": "^2.9",
+    "predis/predis": "^3.2",
     "rahulhaque/laravel-filepond": "^12.2",
     "spatie/laravel-data": "^4.17",
     "spatie/laravel-permission": "^6.21",

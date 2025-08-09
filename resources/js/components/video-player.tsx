@@ -36,7 +36,7 @@ export default function VideoPlayer({
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
-    const bufferCheckInterval = useRef<NodeJS.Timeout | null>(null);
+    const bufferCheckInterval = useRef<number | null>(null);
     const lastBufferCheck = useRef(0);
 
     // Initialize intelligent buffering system

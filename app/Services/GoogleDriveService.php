@@ -9,29 +9,34 @@ use Google\Service\Drive as GoogleDrive;
 use Google\Service\Drive\DriveFile;
 use Google\Service\Drive\Permission;
 use Google\Service\Exception as GoogleServiceException;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
-use InvalidArgumentException;
-use RuntimeException;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+use InvalidArgumentException;
+use RuntimeException;
 
 /**
  * Google Drive Service with Super Fast Video Streaming
- * 
+ *
  * Implements YouTube-style chunk-by-chunk streaming for large video files
  * with intelligent buffering and range request optimization.
  */
 class GoogleDriveService
 {
     private GoogleClient $client;
+
     private GoogleDrive $drive;
+
     private HttpClient $httpClient;
+
     private ?string $defaultFolderId;
 
     // Streaming optimization constants
     private const CHUNK_SIZE = 1024 * 1024; // 1MB chunks for optimal streaming
+
     private const ACCESS_TOKEN_CACHE_KEY = 'google_drive_access_token';
+
     private const TOKEN_CACHE_DURATION = 3300; // 55 minutes (tokens expire in 1 hour)
 
     /**
@@ -55,13 +60,23 @@ class GoogleDriveService
     }
 
     /**
+     * PUBLIC METHOD: Get access token for external streaming
+     * This allows ManageDynamicPage to authenticate with Google Drive API
+     */
+    public function getAccessToken(): string
+    {
+        return $this->getCachedAccessToken();
+    }
+
+    /**
      * CRITICAL METHOD: Get byte range from Google Drive file - YouTube-style streaming
      * This method enables super fast chunk-by-chunk loading
      *
-     * @param string $fileId Google Drive file ID
-     * @param int $start Starting byte position
-     * @param int $length Number of bytes to fetch
+     * @param  string  $fileId  Google Drive file ID
+     * @param  int  $start  Starting byte position
+     * @param  int  $length  Number of bytes to fetch
      * @return string Binary chunk data
+     *
      * @throws RuntimeException When range request fails
      */
     public function getRange(string $fileId, int $start, int $length): string
@@ -90,7 +105,7 @@ class GoogleDriveService
                 $content = '';
 
                 // Read the stream in small chunks to avoid memory issues
-                while (!$body->eof()) {
+                while (! $body->eof()) {
                     $chunk = $body->read(8192); // 8KB read buffer
                     if ($chunk === '') {
                         break;
@@ -98,19 +113,21 @@ class GoogleDriveService
                     $content .= $chunk;
                 }
 
-                Log::debug("Successfully fetched " . strlen($content) . " bytes");
+                Log::debug('Successfully fetched '.strlen($content).' bytes');
+
                 return $content;
             }
 
             if ($statusCode === 401) {
                 // Token expired, refresh and retry
-                Log::info("Access token expired, refreshing...");
+                Log::info('Access token expired, refreshing...');
                 $this->refreshAccessToken();
+
                 return $this->getRange($fileId, $start, $length); // Recursive retry
             }
 
             $errorBody = $response->getBody()->getContents();
-            Log::error("Range request failed", [
+            Log::error('Range request failed', [
                 'file_id' => $fileId,
                 'status_code' => $statusCode,
                 'range' => "bytes={$start}-{$end}",
@@ -119,13 +136,13 @@ class GoogleDriveService
 
             throw new RuntimeException("Range request failed with status {$statusCode}: {$errorBody}");
         } catch (RequestException $e) {
-            Log::error("HTTP request failed for range fetch", [
+            Log::error('HTTP request failed for range fetch', [
                 'file_id' => $fileId,
                 'range' => "bytes={$start}-{$end}",
                 'error' => $e->getMessage(),
             ]);
 
-            throw new RuntimeException("Failed to fetch file range: " . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to fetch file range: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -163,10 +180,10 @@ class GoogleDriveService
             $accessToken = is_array($token) ? $token['access_token'] : $token;
             Cache::put(self::ACCESS_TOKEN_CACHE_KEY, $accessToken, self::TOKEN_CACHE_DURATION);
 
-            Log::info("Access token refreshed successfully");
+            Log::info('Access token refreshed successfully');
         } catch (\Exception $e) {
             Cache::forget(self::ACCESS_TOKEN_CACHE_KEY);
-            throw new RuntimeException("Failed to refresh access token: " . $e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to refresh access token: '.$e->getMessage(), 0, $e);
         }
     }
 
@@ -180,7 +197,7 @@ class GoogleDriveService
         return Cache::remember($cacheKey, 600, function () use ($fileId) { // 10 minutes cache
             try {
                 return $this->drive->files->get($fileId, [
-                    'fields' => 'id, name, mimeType, size, createdTime, modifiedTime, webViewLink'
+                    'fields' => 'id, name, mimeType, size, createdTime, modifiedTime, webViewLink',
                 ]);
             } catch (GoogleServiceException $exception) {
                 if (in_array($exception->getCode(), [404, 403])) {
@@ -194,7 +211,7 @@ class GoogleDriveService
                 ]);
 
                 throw new RuntimeException(
-                    'Failed to retrieve file information: ' . $exception->getMessage(),
+                    'Failed to retrieve file information: '.$exception->getMessage(),
                     $exception->getCode(),
                     $exception
                 );
@@ -208,6 +225,7 @@ class GoogleDriveService
     public function getDirectStreamingUrl(string $fileId): string
     {
         $accessToken = $this->getCachedAccessToken();
+
         return "https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media&access_token={$accessToken}";
     }
 
@@ -261,7 +279,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to upload file to Google Drive: ' . $exception->getMessage(),
+                'Failed to upload file to Google Drive: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -283,6 +301,7 @@ class GoogleDriveService
                     'file_id' => $fileId,
                     'error' => $exception->getMessage(),
                 ]);
+
                 return null;
             }
 
@@ -306,7 +325,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to download file from Google Drive: ' . $exception->getMessage(),
+                'Failed to download file from Google Drive: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -350,7 +369,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to update file in Google Drive: ' . $exception->getMessage(),
+                'Failed to update file in Google Drive: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -374,7 +393,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to delete file from Google Drive: ' . $exception->getMessage(),
+                'Failed to delete file from Google Drive: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -393,8 +412,9 @@ class GoogleDriveService
 
     public function getFileInfoSafe(string $fileId): ?array
     {
-        if (!$this->isValidFileId($fileId)) {
+        if (! $this->isValidFileId($fileId)) {
             Log::warning('Invalid Google Drive file ID format', ['file_id' => $fileId]);
+
             return null;
         }
 
@@ -435,7 +455,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to make file public: ' . $exception->getMessage(),
+                'Failed to make file public: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -470,9 +490,10 @@ class GoogleDriveService
     {
         try {
             $response = $this->drive->files->get($fileId, ['alt' => 'media']);
+
             return $response->getBody()->getContents();
         } catch (GoogleServiceException $e) {
-            throw new RuntimeException('Failed to get file: ' . $e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Failed to get file: '.$e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -492,7 +513,7 @@ class GoogleDriveService
 
     public function listFiles(?string $folderId = null, int $maxResults = 100): array
     {
-        $query = "trashed = false";
+        $query = 'trashed = false';
 
         if ($folderId) {
             $query .= " and '{$folderId}' in parents";
@@ -523,7 +544,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to list files: ' . $exception->getMessage(),
+                'Failed to list files: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -539,7 +560,7 @@ class GoogleDriveService
 
         if (empty($clientId) || empty($clientSecret) || empty($refreshToken)) {
             throw new RuntimeException(
-                'Google Drive credentials are not properly configured. ' .
+                'Google Drive credentials are not properly configured. '.
                     'Please check your filesystems.disks.google configuration.'
             );
         }
@@ -551,7 +572,7 @@ class GoogleDriveService
         $clientSecret = config('filesystems.disks.google.clientSecret');
         $refreshToken = config('filesystems.disks.google.refreshToken');
 
-        $this->client = new GoogleClient();
+        $this->client = new GoogleClient;
         $this->client->setClientId($clientId);
         $this->client->setClientSecret($clientSecret);
         $this->client->setAccessType('offline');
@@ -565,7 +586,7 @@ class GoogleDriveService
             }
         } catch (\Exception $exception) {
             throw new RuntimeException(
-                'Failed to authenticate with Google Drive: ' . $exception->getMessage(),
+                'Failed to authenticate with Google Drive: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -601,7 +622,7 @@ class GoogleDriveService
                 'spaces' => 'drive',
             ]);
 
-            if (!empty($response->files) && isset($response->files[0]->id)) {
+            if (! empty($response->files) && isset($response->files[0]->id)) {
                 return $response->files[0]->id;
             }
 
@@ -614,7 +635,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to search for folder: ' . $exception->getMessage(),
+                'Failed to search for folder: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -653,7 +674,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to create folder: ' . $exception->getMessage(),
+                'Failed to create folder: '.$exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -662,11 +683,11 @@ class GoogleDriveService
 
     private function validateFilePath(string $filePath): void
     {
-        if (!file_exists($filePath)) {
+        if (! file_exists($filePath)) {
             throw new InvalidArgumentException("File not found: {$filePath}");
         }
 
-        if (!is_readable($filePath)) {
+        if (! is_readable($filePath)) {
             throw new InvalidArgumentException("File is not readable: {$filePath}");
         }
     }
@@ -674,6 +695,7 @@ class GoogleDriveService
     private function detectMimeType(string $filePath): string
     {
         $mimeType = mime_content_type($filePath);
+
         return $mimeType ?: 'application/octet-stream';
     }
 }
