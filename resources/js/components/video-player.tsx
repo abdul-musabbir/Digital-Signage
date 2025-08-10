@@ -24,6 +24,7 @@ export default function VideoPlayer({
     preloadUrl,
     onError,
     className,
+    ...props
 }: VideoPlayerProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -331,6 +332,7 @@ export default function VideoPlayer({
                 onError={handleError}
                 controlsList="nodownload"
                 disablePictureInPicture
+                {...props}
             >
                 <source src={url} type={mimeType} />
                 {preloadUrl && <link rel="preload" href={preloadUrl} as="video" />}

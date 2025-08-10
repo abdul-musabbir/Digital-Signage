@@ -113,7 +113,7 @@ class GoogleDriveService
                     $content .= $chunk;
                 }
 
-                Log::debug('Successfully fetched '.strlen($content).' bytes');
+                Log::debug('Successfully fetched ' . strlen($content) . ' bytes');
 
                 return $content;
             }
@@ -142,7 +142,7 @@ class GoogleDriveService
                 'error' => $e->getMessage(),
             ]);
 
-            throw new RuntimeException('Failed to fetch file range: '.$e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to fetch file range: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -183,7 +183,7 @@ class GoogleDriveService
             Log::info('Access token refreshed successfully');
         } catch (\Exception $e) {
             Cache::forget(self::ACCESS_TOKEN_CACHE_KEY);
-            throw new RuntimeException('Failed to refresh access token: '.$e->getMessage(), 0, $e);
+            throw new RuntimeException('Failed to refresh access token: ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -211,7 +211,7 @@ class GoogleDriveService
                 ]);
 
                 throw new RuntimeException(
-                    'Failed to retrieve file information: '.$exception->getMessage(),
+                    'Failed to retrieve file information: ' . $exception->getMessage(),
                     $exception->getCode(),
                     $exception
                 );
@@ -279,7 +279,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to upload file to Google Drive: '.$exception->getMessage(),
+                'Failed to upload file to Google Drive: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -325,7 +325,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to download file from Google Drive: '.$exception->getMessage(),
+                'Failed to download file from Google Drive: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -369,7 +369,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to update file in Google Drive: '.$exception->getMessage(),
+                'Failed to update file in Google Drive: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -393,7 +393,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to delete file from Google Drive: '.$exception->getMessage(),
+                'Failed to delete file from Google Drive: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -455,7 +455,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to make file public: '.$exception->getMessage(),
+                'Failed to make file public: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -493,7 +493,7 @@ class GoogleDriveService
 
             return $response->getBody()->getContents();
         } catch (GoogleServiceException $e) {
-            throw new RuntimeException('Failed to get file: '.$e->getMessage(), $e->getCode(), $e);
+            throw new RuntimeException('Failed to get file: ' . $e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -544,7 +544,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to list files: '.$exception->getMessage(),
+                'Failed to list files: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -560,7 +560,7 @@ class GoogleDriveService
 
         if (empty($clientId) || empty($clientSecret) || empty($refreshToken)) {
             throw new RuntimeException(
-                'Google Drive credentials are not properly configured. '.
+                'Google Drive credentials are not properly configured. ' .
                     'Please check your filesystems.disks.google configuration.'
             );
         }
@@ -586,7 +586,7 @@ class GoogleDriveService
             }
         } catch (\Exception $exception) {
             throw new RuntimeException(
-                'Failed to authenticate with Google Drive: '.$exception->getMessage(),
+                'Failed to authenticate with Google Drive: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -635,7 +635,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to search for folder: '.$exception->getMessage(),
+                'Failed to search for folder: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -674,7 +674,7 @@ class GoogleDriveService
             ]);
 
             throw new RuntimeException(
-                'Failed to create folder: '.$exception->getMessage(),
+                'Failed to create folder: ' . $exception->getMessage(),
                 $exception->getCode(),
                 $exception
             );
@@ -697,5 +697,80 @@ class GoogleDriveService
         $mimeType = mime_content_type($filePath);
 
         return $mimeType ?: 'application/octet-stream';
+    }
+
+    /**
+     * Check if uploaded video is ready to play (FIXED VERSION)
+     * 
+     * @param string $fileId Google Drive file ID
+     * @return string 'ready' if video can play, 'processing' if still being processed
+     */
+    public function checkVideoReadyStatus(string $fileId): string
+    {
+        try {
+            // Get file information with video metadata
+            $fileInfo = $this->drive->files->get($fileId, [
+                'fields' => 'id, name, mimeType, size, videoMediaMetadata'
+            ]);
+
+            if (!$fileInfo) {
+                return 'processing';
+            }
+
+            // Check if it's a video file
+            if (!str_starts_with($fileInfo->mimeType ?? '', 'video/')) {
+                return 'ready';
+            }
+
+            // Check if video has metadata (indicates processing is complete)
+            $videoMetadata = $fileInfo->videoMediaMetadata ?? null;
+
+            if (!$videoMetadata) {
+                return 'processing'; // No video metadata means still processing
+            }
+
+            // Check if video has proper dimensions (another indicator)
+            if (!isset($videoMetadata->width) || !isset($videoMetadata->height)) {
+                return 'processing';
+            }
+
+            // Test actual streaming capability with range request
+            $accessToken = $this->getCachedAccessToken();
+            $url = "https://www.googleapis.com/drive/v3/files/{$fileId}?alt=media";
+
+            $response = $this->httpClient->get($url, [
+                'headers' => [
+                    'Authorization' => "Bearer {$accessToken}",
+                    'Range' => 'bytes=0-1023', // First 1KB
+                ],
+                'timeout' => 10,
+                'stream' => true,
+            ]);
+
+            $statusCode = $response->getStatusCode();
+
+            // Video is ready if we get partial content (206) or full content (200)
+            if ($statusCode === 206 || $statusCode === 200) {
+                $content = $response->getBody()->read(100); // Read small amount
+                return !empty($content) ? 'ready' : 'processing';
+            }
+
+            return 'processing';
+        } catch (\Exception $e) {
+            // If we get a 403 or 416 error, video might still be processing
+            if (
+                strpos($e->getMessage(), '403') !== false ||
+                strpos($e->getMessage(), '416') !== false
+            ) {
+                return 'processing';
+            }
+
+            Log::debug('Video status check failed', [
+                'file_id' => $fileId,
+                'error' => $e->getMessage()
+            ]);
+
+            return 'processing';
+        }
     }
 }

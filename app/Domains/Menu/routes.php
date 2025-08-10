@@ -6,6 +6,7 @@ use App\Domains\Menu\Actions\DeleteMenu;
 use App\Domains\Menu\Actions\UploadFiles;
 use App\Domains\Menu\Pages\ManageMenuPage;
 use App\Domains\Menu\Pages\View\ManageDynamicPage;
+use App\Services\GoogleDriveService;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'optimize.video'])
@@ -65,4 +66,17 @@ Route::middleware(['auth', 'optimize.video'])
         // Delete menu
         Route::delete('/destroy/{menu}', DeleteMenu::class)
             ->name('destroy');
+
+        Route::get('/video/{id}', function (string $id) {
+            $drive = new GoogleDriveService();
+            $status = $drive->checkVideoReadyStatus($id);
+
+            if ($status === 'ready') {
+                echo "✅ Video is ready to play!";
+                // Show video player
+            } else {
+                echo "⏳ Video is still processing...";
+                // Show loading message
+            }
+        });
     });
