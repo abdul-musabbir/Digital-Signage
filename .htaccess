@@ -1,30 +1,5 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
 
-    # Allow direct access to existing files and directories
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
-
-    # Redirect all /api requests to Laravel
-    RewriteCond %{REQUEST_URI} ^/api
-    RewriteRule ^ index.php [L]
-
-    # Serve React app for all other requests (SPA routing)
-    RewriteRule ^ index.html [L]
+    RewriteRule ^ (.*)$ public/$1 [L]
 </IfModule>
-
-# Disable directory listing
-Options -Indexes
-
-# Optional: Set CORS headers if needed
-<IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
-</IfModule>
-
-# Handle PHP files
-<FilesMatch "\.php$">
-    SetHandler application/x-httpd-php
-</FilesMatch>
