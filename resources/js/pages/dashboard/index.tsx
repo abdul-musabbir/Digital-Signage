@@ -32,6 +32,9 @@ export default function Dashboard() {
                             <Button>Download</Button>
                         </div>
                     </div>
+                    <img src="https://drive.google.com/uc?id=1FQ86l-WjRjzPtrSBO5EVvYrMKAxY8_5c" alt="Description"></img>
+                    <img src="https://drive.google.com/thumbnail?id=1FQ86l-WjRjzPtrSBO5EVvYrMKAxY8_5c&sz=w1000" alt="Description"></img>
+                    <img src="https://www.googleapis.com/drive/v3/files/1FQ86l-WjRjzPtrSBO5EVvYrMKAxY8_5c&sz?alt=media" alt="Description"></img>
                     <Tabs orientation="vertical" defaultValue="overview" className="space-y-4">
                         <div className="w-full overflow-x-auto pb-2">
                             <TabsList>
