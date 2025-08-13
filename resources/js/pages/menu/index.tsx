@@ -55,9 +55,7 @@ const Menu: React.FC = () => {
                     <FileUploader />
                 </div>
                 <div className="flex flex-col gap-10">
-                    {menus.map((menu) => (
-                        <ProfessionalFileCards key={menu.id} menu={menu} />
-                    ))}
+                    {menus.map((menu) => menu.menus.length > 0 && <ProfessionalFileCards key={menu.id} menu={menu} />)}
                 </div>
             </Main>
         </AuthenticatedLayout>

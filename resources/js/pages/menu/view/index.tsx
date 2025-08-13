@@ -59,7 +59,6 @@ export default function Index({ video, error }: VideoPlayerProps) {
             </div>
         </div>
     );
-
     return (
         <AuthenticatedLayout title="Video Player">
             <Main>
@@ -103,6 +102,8 @@ export default function Index({ video, error }: VideoPlayerProps) {
                             </div>
                         </div>
                     )}
+
+                    <video src={video?.streamingUrl} controls></video>
                 </div>
             </Main>
         </AuthenticatedLayout>

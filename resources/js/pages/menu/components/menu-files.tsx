@@ -1,9 +1,9 @@
 import DeleteMenuComponent from './delete-menu';
+import EditMenu from './edit-menu';
 import { Link } from '@inertiajs/react';
-import { Calendar, Download, Edit3, Eye, FileText, HardDrive, ImageIcon, MoreVertical, Play } from 'lucide-react';
+import { Calendar, Eye, FileText, HardDrive, ImageIcon, MoreVertical, Play } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import DeleteMenu from '@/lib/wayfinder/actions/App/Domains/Menu/Actions/DeleteMenu';
 
 import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -213,27 +213,11 @@ const FileCard: React.FC<FileCardProps> = ({ file }) => {
                                 View
                             </Link>
 
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 rounded-lg px-2 text-xs font-medium transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700"
-                            >
-                                <Edit3 className="mr-1 h-3.5 w-3.5" />
-                                Edit
-                            </Button>
+                            <EditMenu id={Number(file.id)} title={file.name} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-1.5">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 rounded-lg px-2 text-xs font-medium transition-all duration-200 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-700"
-                            >
-                                <Download className="mr-1 h-3.5 w-3.5" />
-                                Save
-                            </Button>
-
-                            <DeleteMenuComponent action={DeleteMenu.url(String(file.id))} />
+                            <DeleteMenuComponent action={route('menu.destroy', file.id)} itemName={file.name} itemType="file" />
                         </div>
                     </div>
                 </div>

@@ -22,41 +22,77 @@ class ManageDynamicPage
         $this->drive = $drive;
     }
 
+    // public function index(Menu $menu): \Inertia\Response
+    // {
+    //     $googleDriveId = $menu->google_drive_id;
+
+    //     // Fetch video info with caching (remove Cache::rememberForever if you want no cache)
+    //     $video = Cache::rememberForever("instant_video_{$googleDriveId}", function () use ($googleDriveId) {
+    //         try {
+    //             $fileInfo = $this->drive->getFileInfo($googleDriveId);
+
+    //             if (! $fileInfo) {
+    //                 return null;
+    //             }
+
+    //             return [
+    //                 'id'           => $googleDriveId,
+    //                 'name'         => $fileInfo->name,
+    //                 'size'         => (int) $fileInfo->size,
+    //                 'mimeType'     => $fileInfo->mimeType ?? 'video/mp4',
+    //                 'streamingUrl' => route('menu.stream', ['menu' => $googleDriveId]),
+    //                 'instantReady' => true,
+    //             ];
+    //         } catch (\Throwable) {
+    //             return null;
+    //         }
+    //     });
+
+    //     return inertia('menu/view/index', [
+    //         'video'       => $video,
+    //         'error'       => $video ? null : 'Video not found',
+    //         'instantPlay' => (bool) $video,
+    //     ]);
+    // }
+
+
     public function index(Menu $menu)
     {
         $id = $menu->google_drive_id;
 
-        if (! preg_match('/^[a-zA-Z0-9_-]{10,50}$/', $id)) {
-            return inertia('menu/view/index', ['video' => null, 'error' => 'Invalid ID']);
-        }
+        try {
+            $info = $this->drive->getFileInfo($id);
 
-        $video = Cache::rememberForever("instant_video_{$id}", function () use ($id) {
-            try {
-                $info = $this->drive->getFileInfo($id);
-                if (! $info) {
-                    return null;
-                }
-
-                return [
-                    'id' => $id,
-                    'name' => $info->name,
-                    'size' => (int) $info->size,
-                    'mimeType' => $info->mimeType ?? 'video/mp4',
-                    'streamingUrl' => route('menu.stream', ['id' => $id]),
-                    'instantReady' => true,
-                ];
-            } catch (\Exception $e) {
-                return null;
+            if (! $info) {
+                return inertia('menu/view/index', [
+                    'video' => null,
+                    'error' => 'Video not found',
+                    'instantPlay' => false,
+                ]);
             }
-        });
 
-        return inertia('menu/view/index', [
-            'video' => $video,
-            'error' => $video ? null : 'Video not found',
-            'instantPlay' => true,
-        ]);
+            $video = [
+                'id'           => $id,
+                'name'         => $info->name,
+                'size'         => (int) $info->size,
+                'mimeType'     => $info->mimeType ?? 'video/mp4',
+                'streamingUrl' => route('menu.stream', ['menu' => $id]),
+                'instantReady' => true,
+            ];
+
+            return inertia('menu/view/index', [
+                'video'       => $video,
+                'error'       => null,
+                'instantPlay' => true,
+            ]);
+        } catch (\Throwable $e) {
+            return inertia('menu/view/index', [
+                'video'       => null,
+                'error'       => 'Video not found',
+                'instantPlay' => false,
+            ]);
+        }
     }
-
     public function stream(string $id, Request $request): StreamedResponse
     {
         DB::disconnect();

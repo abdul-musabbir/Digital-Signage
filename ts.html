@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Login Request</title>
+    </head>
+    <body>
+        <form id="form">
+            <button type="submit">Click</button>
+        </form>
+
+        <!-- Response will be shown here -->
+        <div id="responseBox" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc"></div>
+
+        <script>
+            const form = document.getElementById('form');
+            const responseBox = document.getElementById('responseBox');
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent page reload
+
+                const http = new XMLHttpRequest();
+
+                http.onload = function () {
+                    if (this.status >= 200 && this.status < 300) {
+                        responseBox.style.color = 'green';
+                        responseBox.textContent = JSON.stringify(this.response, null, 2);
+                        localStorage.setItem('token', this.response.token);
+                    } else {
+                        responseBox.style.color = 'red';
+                        responseBox.textContent = `Error ${this.status}: ${this.statusText}`;
+                    }
+                };
+
+                http.responseType = 'json';
+                http.open('POST', 'http://localhost:8000/api/login', true);
+                http.setRequestHeader('Content-Type', 'application/json');
+
+                const data = {
+                    email: 'midbox28@gmail.com',
+                    password: 'Asik123456',
+                    device_name: 'web',
+                };
+                http.send(JSON.stringify(data));
+            });
+        </script>
+    </body>
+</html>

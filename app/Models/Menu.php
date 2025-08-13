@@ -7,10 +7,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
 
 class Menu extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasApiTokens;
 
     protected $table = 'menus';
 

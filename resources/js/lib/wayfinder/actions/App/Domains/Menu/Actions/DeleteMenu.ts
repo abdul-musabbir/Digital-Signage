@@ -4,7 +4,7 @@ import { queryParams, type QueryParams } from './../../../../../wayfinder'
 * @see app/Domains/Menu/Actions/DeleteMenu.php:17
 * @route '/dashboard/menu/destroy/{menu}'
 */
-const DeleteMenu = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+const DeleteMenu = (args: { menu: number | { id: number } } | [menu: number | { id: number } ] | number | { id: number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'delete',
 } => ({
@@ -22,13 +22,13 @@ DeleteMenu.definition = {
 * @see app/Domains/Menu/Actions/DeleteMenu.php:17
 * @route '/dashboard/menu/destroy/{menu}'
 */
-DeleteMenu.url = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
+DeleteMenu.url = (args: { menu: number | { id: number } } | [menu: number | { id: number } ] | number | { id: number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { menu: args }
     }
 
-    if (typeof args === 'object' && !Array.isArray(args) && 'google_drive_id' in args) {
-        args = { menu: args.google_drive_id }
+    if (typeof args === 'object' && !Array.isArray(args) && 'id' in args) {
+        args = { menu: args.id }
     }
 
     if (Array.isArray(args)) {
@@ -39,7 +39,7 @@ DeleteMenu.url = (args: { menu: string | { google_drive_id: string } } | [menu: 
 
     const parsedArgs = {
         menu: typeof args.menu === 'object'
-        ? args.menu.google_drive_id
+        ? args.menu.id
         : args.menu,
     }
 
@@ -53,7 +53,7 @@ DeleteMenu.url = (args: { menu: string | { google_drive_id: string } } | [menu: 
 * @see app/Domains/Menu/Actions/DeleteMenu.php:17
 * @route '/dashboard/menu/destroy/{menu}'
 */
-DeleteMenu.delete = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+DeleteMenu.delete = (args: { menu: number | { id: number } } | [menu: number | { id: number } ] | number | { id: number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'delete',
 } => ({

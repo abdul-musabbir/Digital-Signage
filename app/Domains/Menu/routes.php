@@ -3,13 +3,14 @@
 declare(strict_types=1);
 
 use App\Domains\Menu\Actions\DeleteMenu;
+use App\Domains\Menu\Actions\UpdateMenu;
 use App\Domains\Menu\Actions\UploadFiles;
 use App\Domains\Menu\Pages\ManageMenuPage;
 use App\Domains\Menu\Pages\View\ManageDynamicPage;
-use App\Services\GoogleDriveService;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'optimize.video'])
+// Route::middleware(['auth', 'optimize.video'])
+Route::middleware(['auth'])
     ->prefix('dashboard/menu')
     ->name('menu.')
     ->group(function () {
@@ -22,14 +23,20 @@ Route::middleware(['auth', 'optimize.video'])
 
         // Main Menu Page - instant load
         Route::get('/', ManageMenuPage::class)
-            ->name('index')
-            ->middleware('prevent.duplicate');
+            ->name('index');
+        // ->middleware('prevent.duplicate');
 
         // Video View Page - ZERO reload protection
         Route::get('/{menu:google_drive_id}', [ManageDynamicPage::class, 'index'])
-            ->name('view')
-            ->middleware(['prevent.duplicate', 'throttle:60,1']);
+            ->name('view');
+        // ->middleware(['prevent.duplicate', 'throttle:60,1']);
 
+        // update menu
+        Route::put('/update/{menu:id}', UpdateMenu::class)->name('update');
+
+        // Delete menu
+        Route::delete('/destroy/{menu:id}', DeleteMenu::class)
+            ->name('destroy');
         /*
         |--------------------------------------------------------------------------
         | Video Streaming Routes
@@ -60,23 +67,6 @@ Route::middleware(['auth', 'optimize.video'])
 
         // File upload
         Route::post('/upload', UploadFiles::class)
-            ->name('upload')
-            ->middleware('prevent.duplicate');
-
-        // Delete menu
-        Route::delete('/destroy/{menu}', DeleteMenu::class)
-            ->name('destroy');
-
-        Route::get('/video/{id}', function (string $id) {
-            $drive = new GoogleDriveService();
-            $status = $drive->checkVideoReadyStatus($id);
-
-            if ($status === 'ready') {
-                echo "✅ Video is ready to play!";
-                // Show video player
-            } else {
-                echo "⏳ Video is still processing...";
-                // Show loading message
-            }
-        });
+            ->name('upload');
+        // ->middleware('prevent.duplicate');
     });

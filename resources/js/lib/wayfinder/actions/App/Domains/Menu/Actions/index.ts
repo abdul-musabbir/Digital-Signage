@@ -1,9 +1,11 @@
-import UploadFiles from './UploadFiles'
+import UpdateMenu from './UpdateMenu'
 import DeleteMenu from './DeleteMenu'
+import UploadFiles from './UploadFiles'
 
 const Actions = {
-    UploadFiles,
+    UpdateMenu,
     DeleteMenu,
+    UploadFiles,
 }
 
 export default Actions
