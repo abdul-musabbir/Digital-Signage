@@ -55,7 +55,6 @@ class ManageDynamicPage
     //     ]);
     // }
 
-
     public function index(Menu $menu)
     {
         $id = $menu->google_drive_id;
@@ -72,27 +71,28 @@ class ManageDynamicPage
             }
 
             $video = [
-                'id'           => $id,
-                'name'         => $info->name,
-                'size'         => (int) $info->size,
-                'mimeType'     => $info->mimeType ?? 'video/mp4',
+                'id' => $id,
+                'name' => $info->name,
+                'size' => (int) $info->size,
+                'mimeType' => $info->mimeType ?? 'video/mp4',
                 'streamingUrl' => route('menu.stream', ['menu' => $id]),
                 'instantReady' => true,
             ];
 
             return inertia('menu/view/index', [
-                'video'       => $video,
-                'error'       => null,
+                'video' => $video,
+                'error' => null,
                 'instantPlay' => true,
             ]);
         } catch (\Throwable $e) {
             return inertia('menu/view/index', [
-                'video'       => null,
-                'error'       => 'Video not found',
+                'video' => null,
+                'error' => 'Video not found',
                 'instantPlay' => false,
             ]);
         }
     }
+
     public function stream(string $id, Request $request): StreamedResponse
     {
         DB::disconnect();

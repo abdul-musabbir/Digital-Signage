@@ -27,7 +27,7 @@ class UploadFiles
         'webm',
         'mkv',
         '3gp',
-        'm4v'
+        'm4v',
     ];
 
     private const SUPPORTED_IMAGE_FORMATS = [
@@ -41,7 +41,7 @@ class UploadFiles
         'svg',
         'ico',
         'heic',
-        'heif'
+        'heif',
     ];
 
     private const SUPPORTED_DOCUMENT_FORMATS = [
@@ -54,7 +54,7 @@ class UploadFiles
         'pptx',
         'txt',
         'rtf',
-        'csv'
+        'csv',
     ];
 
     private const GOOGLE_DRIVE_MIMES = [
@@ -92,7 +92,7 @@ class UploadFiles
         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'text/plain',
         'application/rtf',
-        'text/csv'
+        'text/csv',
     ];
 
     public function __construct(
@@ -109,7 +109,7 @@ class UploadFiles
         ]);
 
         $errors = [];
-        $batchId = time() . '_' . uniqid();
+        $batchId = time().'_'.uniqid();
         $files = $request->videos; // Keep original name for compatibility
 
         // Group files by unique Filepond path to avoid duplicates
@@ -119,12 +119,12 @@ class UploadFiles
             if (is_string($file)) {
                 $path = trim($file);
                 $filesByPath[$path][] = ['path' => $path, 'name' => basename($file)];
-            } else if (is_array($file) && isset($file['path'])) {
+            } elseif (is_array($file) && isset($file['path'])) {
                 $path = trim($file['path']);
                 $filesByPath[$path][] = $file;
             } else {
                 Log::warning('Invalid file format in request', ['file' => $file]);
-                $errors[] = "Invalid file format detected";
+                $errors[] = 'Invalid file format detected';
             }
         }
 
@@ -144,13 +144,14 @@ class UploadFiles
                 Log::info('Moving Filepond temp file', [
                     'path' => $path,
                     'target_directory' => $targetDirectory,
-                    'filename' => $canonicalName
+                    'filename' => $canonicalName,
                 ]);
 
                 $filepondField = Filepond::field($path);
                 if (! $filepondField) {
                     $errors[] = "Filepond temporary file not found or expired: {$canonicalName} (Path: {$path})";
                     Log::error('Filepond field not found', ['path' => $path, 'name' => $canonicalName]);
+
                     continue;
                 }
 
@@ -159,6 +160,7 @@ class UploadFiles
                 if (empty($fileInfo['location'])) {
                     $errors[] = "Failed to process file: {$canonicalName} (FilePond processing failed)";
                     Log::error('Filepond moveTo failed', ['path' => $path, 'file_info' => $fileInfo]);
+
                     continue;
                 }
 
@@ -169,14 +171,14 @@ class UploadFiles
 
                 // Find the actual file full path
                 $possiblePaths = [
-                    $storagePath . $fileInfo['location'],
-                    $storagePath . $fileInfo['location'] . '.' . $originalExtension,
-                    $storagePath . dirname($fileInfo['location']) . '/' . basename($fileInfo['location']) . '.' . $originalExtension,
+                    $storagePath.$fileInfo['location'],
+                    $storagePath.$fileInfo['location'].'.'.$originalExtension,
+                    $storagePath.dirname($fileInfo['location']).'/'.basename($fileInfo['location']).'.'.$originalExtension,
                 ];
 
-                $directoryPath = $storagePath . dirname($fileInfo['location']);
+                $directoryPath = $storagePath.dirname($fileInfo['location']);
                 if (is_dir($directoryPath)) {
-                    $files = glob($directoryPath . '/*');
+                    $files = glob($directoryPath.'/*');
                     $possiblePaths = array_merge($possiblePaths, $files);
                 }
 
@@ -191,12 +193,14 @@ class UploadFiles
 
                 if (! $fullPath) {
                     $errors[] = "File not found after upload: {$canonicalName}";
+
                     continue;
                 }
 
                 $fileSize = filesize($fullPath);
                 if ($fileSize === 0) {
                     $errors[] = "File is empty: {$canonicalName}";
+
                     continue;
                 }
 
@@ -205,6 +209,7 @@ class UploadFiles
 
                 if (! $this->isValidFileFormat($originalExtension, $mimeType)) {
                     $errors[] = "Unsupported file format: {$canonicalName} (Extension: {$originalExtension})";
+
                     continue;
                 }
 
@@ -220,10 +225,11 @@ class UploadFiles
                 ]);
 
                 // Upload file to Google Drive
-                $uploadedFile = $this->drive->upload($fullPath, $cleanFileName, $mimeType, 'Client_' . $request->client);
+                $uploadedFile = $this->drive->upload($fullPath, $cleanFileName, $mimeType, 'Client_'.$request->client);
 
                 if (! $uploadedFile || ! isset($uploadedFile['id'])) {
                     $errors[] = "Failed to upload to Google Drive: {$canonicalName}";
+
                     continue;
                 }
 
@@ -270,7 +276,7 @@ class UploadFiles
                 ]);
             } catch (\Exception $e) {
                 $fileName = $filesWithSamePath[0]['name'] ?? 'unknown_file';
-                $errors[] = "Error processing file {$fileName}: " . $e->getMessage();
+                $errors[] = "Error processing file {$fileName}: ".$e->getMessage();
                 Log::error('Exception while processing file', [
                     'file_name' => $fileName,
                     'error' => $e->getMessage(),
@@ -287,12 +293,13 @@ class UploadFiles
                 // If $file is a string, it might be just the path
                 $path = trim($file);
                 $fileName = basename($file);
-            } else if (is_array($file)) {
+            } elseif (is_array($file)) {
                 // Normal array format
                 $path = trim($file['path'] ?? '');
                 $fileName = $file['name'] ?? basename($path);
             } else {
                 Log::warning('Unexpected file format', ['file' => $file]);
+
                 continue;
             }
 
@@ -312,14 +319,14 @@ class UploadFiles
         ]);
 
         if (empty($processedFiles) && ! empty($errors)) {
-            return back()->withErrors(['filepond' => 'No files processed. Errors: ' . implode(', ', $errors)]);
+            return back()->withErrors(['filepond' => 'No files processed. Errors: '.implode(', ', $errors)]);
         }
 
         $total = count($request->videos);
         $success = count($processedFiles);
         $message = $success === $total
             ? "{$success} file(s) uploaded successfully."
-            : "{$success} of {$total} file(s) uploaded. Errors: " . implode(', ', $errors);
+            : "{$success} of {$total} file(s) uploaded. Errors: ".implode(', ', $errors);
 
         return back()->with('success', $message);
     }
@@ -429,7 +436,7 @@ class UploadFiles
 
         if (empty($cleaned)) {
             $extension = pathinfo($filename, PATHINFO_EXTENSION);
-            $cleaned = 'file_' . time() . ($extension ? '.' . $extension : '');
+            $cleaned = 'file_'.time().($extension ? '.'.$extension : '');
         }
 
         return $cleaned;

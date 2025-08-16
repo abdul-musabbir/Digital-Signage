@@ -5,15 +5,15 @@ declare(strict_types=1);
 use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    # get the user
+    // get the user
     Route::get('/user', function (Request $request) {
         return $request->user();
     })->middleware('auth:sanctum');
@@ -21,11 +21,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // get single client files
     Route::get('/menus', function (Request $request) {
         $user = $request->user();
-        if (!$user) {
+        if (! $user) {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
         $menus = $user->menus()->select('id', 'name', 'type', 'google_drive_id as fileId', 'mime_type', 'size')->get();
+
         return response()->json([
             'menus' => $menus,
         ]);
@@ -97,7 +98,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-
 // login method
 Route::post('/login', function (Request $request) {
     // ✅ Correct validation rules
@@ -113,7 +113,7 @@ Route::post('/login', function (Request $request) {
     // Check password
     if (! $user || ! Hash::check($request->password, $user->password)) {
         throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.']
+            'email' => ['The provided credentials are incorrect.'],
         ]);
     }
 

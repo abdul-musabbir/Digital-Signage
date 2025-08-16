@@ -11,7 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class Menu extends Model
 {
-    use SoftDeletes, HasApiTokens;
+    use HasApiTokens, SoftDeletes;
 
     protected $table = 'menus';
 

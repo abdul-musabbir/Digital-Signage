@@ -14,11 +14,10 @@ final class UpdateMenu
 {
     use AsAction;
 
-
     public function rules(): array
     {
         return [
-            'title' => ['required', 'min:1']
+            'title' => ['required', 'min:1'],
         ];
     }
 
