@@ -54,7 +54,7 @@ index.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 export const view = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -72,7 +72,7 @@ view.definition = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 view.url = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -103,7 +103,7 @@ view.url = (args: { menu: string | { google_drive_id: string } } | [menu: string
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 view.get = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -116,7 +116,7 @@ view.get = (args: { menu: string | { google_drive_id: string } } | [menu: string
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::view
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 view.head = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {

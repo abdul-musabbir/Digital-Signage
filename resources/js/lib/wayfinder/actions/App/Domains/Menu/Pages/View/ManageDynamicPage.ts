@@ -1,7 +1,7 @@
 import { queryParams, type QueryParams } from './../../../../../../wayfinder'
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 export const index = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -19,7 +19,7 @@ index.definition = {
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 index.url = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -50,7 +50,7 @@ index.url = (args: { menu: string | { google_drive_id: string } } | [menu: strin
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 index.get = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -63,7 +63,7 @@ index.get = (args: { menu: string | { google_drive_id: string } } | [menu: strin
 
 /**
 * @see \App\Domains\Menu\Pages\View\ManageDynamicPage::index
-* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:59
+* @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:58
 * @route '/dashboard/menu/{menu}'
 */
 index.head = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {

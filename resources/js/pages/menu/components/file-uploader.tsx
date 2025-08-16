@@ -139,7 +139,7 @@ export default function VideoUploader() {
                                             <SelectGroup>
                                                 <SelectLabel>Clients</SelectLabel>
                                                 {!clients || clients.length === 0 ? (
-                                                    <SelectItem value="" disabled>
+                                                    <SelectItem value="no-clients-found" disabled>
                                                         No clients found
                                                     </SelectItem>
                                                 ) : (
