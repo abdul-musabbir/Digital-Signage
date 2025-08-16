@@ -1,36 +1,37 @@
-# Ignore version control system directories
+# Version control
 .git
 .gitignore
 .gitattributes
 
-# Ignore development and build files
+# Development and build files
 node_modules
 npm-debug.log
 yarn-error.log
 *.log
 *.cache
+.parcel-cache
 
-# Ignore environment files
+# Environment files
 .env
 .env.*
 !.env.example
 
-# Ignore editor and IDE files
+# Editor and IDE files
 .idea
 .vscode
 *.swp
 *.swo
 *.sublime-*
 
-# Ignore testing and documentation
+# Testing and documentation
 tests
 phpunit.xml
 README.md
 CHANGELOG.md
 LICENSE
-
-# Ignore other unnecessary files
 *.md
+
+# Configuration files
 *.yml
 *.yaml
 .editorconfig
@@ -38,20 +39,38 @@ LICENSE
 phpstan.neon
 psalm.xml
 
-# Ignore backup files
+# Backup files
 *.bak
 *.backup
 
-# Ignore Docker related files (except Dockerfile)
+# Docker related files
 docker-compose*.yml
 .dockerignore
 
-# Ignore Laravel specific files that are not needed in production
+# Laravel runtime files that should be generated in container
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
 storage/logs/*
 bootstrap/cache/*
 
-# Keep .gitkeep files to preserve directory structure
+# But keep .gitkeep files
 !.gitkeep
+
+# Vendor directory (will be installed in container)
+vendor
+
+# Build artifacts
+public/hot
+public/storage
+public/build
+public/mix-manifest.json
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

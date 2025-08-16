@@ -8,6 +8,22 @@
     "routes": [
         {
             "match": {
+                "uri": ["/health", "/api/*"]
+            },
+            "action": {
+                "pass": "applications/laravel"
+            }
+        },
+        {
+            "match": {
+                "uri": ["*.css", "*.js", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.ico", "*.svg", "*.woff", "*.woff2", "*.ttf", "*.eot"]
+            },
+            "action": {
+                "share": "/var/www/html/public$uri"
+            }
+        },
+        {
+            "match": {
                 "uri": "!/index.php"
             },
             "action": {
@@ -23,7 +39,8 @@
         "laravel": {
             "type": "php",
             "root": "/var/www/html/public/",
-            "script": "index.php"
+            "script": "index.php",
+            "index": "index.php"
         }
     }
 }
