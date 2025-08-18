@@ -1,6 +1,6 @@
 import { queryParams, type QueryParams } from './../../../wayfinder'
 /**
-* @see routes/dashboard.php:15
+* @see routes/dashboard.php:17
 * @route '/dashboard/settings/display'
 */
 export const index = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -17,7 +17,7 @@ index.definition = {
 }
 
 /**
-* @see routes/dashboard.php:15
+* @see routes/dashboard.php:17
 * @route '/dashboard/settings/display'
 */
 index.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -25,7 +25,7 @@ index.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
 }
 
 /**
-* @see routes/dashboard.php:15
+* @see routes/dashboard.php:17
 * @route '/dashboard/settings/display'
 */
 index.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -37,7 +37,7 @@ index.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 })
 
 /**
-* @see routes/dashboard.php:15
+* @see routes/dashboard.php:17
 * @route '/dashboard/settings/display'
 */
 index.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {

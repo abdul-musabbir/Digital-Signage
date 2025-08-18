@@ -1,159 +1,195 @@
-import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link } from '@inertiajs/react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { Camera, Upload } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { cn } from '@/lib/utils';
+import UpdateProfile from '@/lib/wayfinder/actions/App/Domains/Profile/Actions/UpdateProfile';
 
+import { Form, FormGroup, FormGroupRaw } from '@/components/form/form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardContent } from '@/components/ui/card';
+import { FormControl } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 
 const profileFormSchema = z.object({
-    username: z
-        .string()
-        .min(2, {
-            message: 'Username must be at least 2 characters.',
-        })
-        .max(30, {
-            message: 'Username must not be longer than 30 characters.',
-        }),
     email: z
         .string({
-            required_error: 'Please select an email to display.',
+            required_error: 'Please enter your email.',
         })
-        .email(),
-    bio: z.string().max(160).min(4),
-    urls: z
-        .array(
-            z.object({
-                value: z.string().url({ message: 'Please enter a valid URL.' }),
-            }),
-        )
-        .optional(),
+        .email('Please enter a valid email address.'),
+    profile_image: z
+        .any()
+        .optional()
+        .refine((file) => {
+            if (!file || (file instanceof FileList && file.length === 0)) return true; // Optional field
+            const actualFile = file instanceof FileList ? file[0] : file;
+            return actualFile?.size <= 5000000; // 5MB
+        }, 'File size must be less than 5MB')
+        .refine((file) => {
+            if (!file || (file instanceof FileList && file.length === 0)) return true;
+            const actualFile = file instanceof FileList ? file[0] : file;
+            return ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(actualFile?.type);
+        }, 'Only .jpg, .jpeg, .png and .webp files are accepted.'),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-// This can come from your database or API.
-const defaultValues: Partial<ProfileFormValues> = {
-    bio: 'I own a computer.',
-    urls: [{ value: 'https://shadcn.com' }, { value: 'http://twitter.com/shadcn' }],
-};
+interface ProfileFormProps {
+    user?: {
+        id?: number;
+        email?: string;
+        profile_image?: string;
+    };
+}
 
-export default function ProfileForm() {
+export default function ProfileForm({ user }: ProfileFormProps) {
+    const [previewImage, setPreviewImage] = useState<string | null>(user?.profile_image || null);
+
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileFormSchema),
-        defaultValues,
         mode: 'onChange',
+        defaultValues: {
+            email: user?.email || '',
+            profile_image: undefined,
+        },
     });
 
-    const { fields, append } = useFieldArray({
-        name: 'urls',
-        control: form.control,
-    });
+    const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            // Validate file size before processing
+            if (file.size > 5000000) {
+                form.setError('profile_image', { message: 'File size must be less than 5MB' });
+                return;
+            }
 
-    function onSubmit(data: ProfileFormValues) {
-        toast({
-            title: 'You submitted the following values:',
-            description: (
-                <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-                    <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-                </pre>
-            ),
-        });
-    }
+            // Validate file type
+            if (!['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type)) {
+                form.setError('profile_image', { message: 'Only .jpg, .jpeg, .png and .webp files are accepted.' });
+                return;
+            }
+
+            // Clear any previous errors
+            form.clearErrors('profile_image');
+
+            // Set form value
+            form.setValue('profile_image', event.target.files, { shouldValidate: true });
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            // Clear everything if no file selected
+            form.setValue('profile_image', undefined);
+            setPreviewImage(user?.profile_image || null);
+        }
+    };
+
+    const getInitials = (email: string) => {
+        return email.split('@')[0].slice(0, 2).toUpperCase();
+    };
+
+    const handleRemoveImage = () => {
+        form.setValue('profile_image', undefined);
+        setPreviewImage(null);
+
+        // Reset the file input
+        const fileInput = document.getElementById('profile-image') as HTMLInputElement;
+        if (fileInput) {
+            fileInput.value = '';
+        }
+    };
+
+    console.log(form.getValues('profile_image'));
 
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                                <Input placeholder="shadcn" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                                This is your public display name. It can be your real name or a pseudonym. You can only change this once every 30
-                                days.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Email</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select a verified email to display" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="m@example.com">m@example.com</SelectItem>
-                                    <SelectItem value="m@google.com">m@google.com</SelectItem>
-                                    <SelectItem value="m@support.com">m@support.com</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormDescription>
-                                You can manage verified email addresses in your <Link href="/">email settings</Link>.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="bio"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Bio</FormLabel>
-                            <FormControl>
-                                <Textarea placeholder="Tell us a little bit about yourself" className="resize-none" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                                You can <span>@mention</span> other users and organizations to link to them.
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <div>
-                    {fields.map((field, index) => (
-                        <FormField
-                            control={form.control}
-                            key={field.id}
-                            name={`urls.${index}.value`}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className={cn(index !== 0 && 'sr-only')}>URLs</FormLabel>
-                                    <FormDescription className={cn(index !== 0 && 'sr-only')}>
-                                        Add links to your website, blog, or social media profiles.
-                                    </FormDescription>
-                                    <FormControl>
-                                        <Input {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    ))}
-                    <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => append({ value: '' })}>
-                        Add URL
+        <Form
+            form={form}
+            onSubmit={{
+                url: UpdateProfile().url,
+                method: UpdateProfile().method,
+            }}
+        >
+            {(isLoading: boolean) => (
+                <>
+                    <FormGroupRaw control={form.control} name="profile_image">
+                        {({ field: { onChange, value, ...rest }, fieldState: { error } }) => (
+                            <Card className="mx-auto w-fit">
+                                <CardContent className="p-6">
+                                    <div className="flex flex-col items-center space-y-4">
+                                        <div className="relative">
+                                            <Avatar className="h-24 w-24">
+                                                <AvatarImage src={previewImage || undefined} alt="Profile" />
+                                                <AvatarFallback className="text-lg">
+                                                    {user?.email ? getInitials(user.email) : <Camera className="h-8 w-8" />}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                        </div>
+
+                                        <div className="text-center">
+                                            <FormControl>
+                                                <div>
+                                                    <Input
+                                                        type="file"
+                                                        accept="image/jpeg,image/jpg,image/png,image/webp"
+                                                        onChange={(e) => {
+                                                            onChange(e);
+                                                            handleImageChange(e);
+                                                        }}
+                                                        className="hidden"
+                                                        id="profile-image"
+                                                        {...rest}
+                                                    />
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => document.getElementById('profile-image')?.click()}
+                                                            className="gap-2"
+                                                            disabled={isLoading}
+                                                        >
+                                                            <Upload className="h-4 w-4" />
+                                                            Choose Image
+                                                        </Button>
+
+                                                        {previewImage && (
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={handleRemoveImage}
+                                                                disabled={isLoading}
+                                                            >
+                                                                Remove
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </FormControl>
+                                            <p className="mt-2 text-xs text-gray-500">JPG, PNG or WEBP (max. 5MB)</p>
+                                            {error && <p className="mt-1 text-xs text-red-500">{error.message}</p>}
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </FormGroupRaw>
+
+                    <FormGroup control={form.control} name="email" label="Email">
+                        {({ field }) => <Input type="email" placeholder="Enter your email" disabled={isLoading} {...field} />}
+                    </FormGroup>
+
+                    <Button type="submit" disabled={isLoading} className="w-full">
+                        {isLoading ? 'Updating...' : 'Update Profile'}
                     </Button>
-                </div>
-                <Button type="submit">Update profile</Button>
-            </form>
+                </>
+            )}
         </Form>
     );
 }

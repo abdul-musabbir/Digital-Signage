@@ -55,13 +55,8 @@ const DeleteMenuComponent: React.FC<DeleteMenuComponentProps> = ({
 
         router.delete(action, {
             preserveScroll: true,
-            preserveState: false,
-            onStart: () => {
-                setLoading(true);
-            },
-            onProgress: () => {
-                setLoading(true);
-            },
+            preserveState: true,
+
             onSuccess: (page) => {
                 setLoading(false);
                 setIsOpen(false);
@@ -77,6 +72,7 @@ const DeleteMenuComponent: React.FC<DeleteMenuComponentProps> = ({
                     onSuccess();
                 }
             },
+
             onError: (errors) => {
                 setLoading(false);
                 console.error('Delete operation failed:', errors);

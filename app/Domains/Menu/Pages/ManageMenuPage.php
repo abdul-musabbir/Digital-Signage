@@ -37,7 +37,22 @@ class ManageMenuPage extends Controller
         return User::select('id', 'name') // only necessary fields
             ->role('customer')
             ->with([
-                'menus:id,client_id,name,type,local_path,google_drive_id,google_drive_url,mime_type,size,description,created_at',
+                'menus' => function ($query) {
+                    $query->select(
+                        'id',
+                        'client_id',
+                        'name',
+                        'type',
+                        'local_path',
+                        'google_drive_id',
+                        'google_drive_url',
+                        'mime_type',
+                        'size',
+                        'thumbnail',
+                        'description',
+                        'created_at'
+                    )->orderBy('name', 'asc'); // ✅ sort menus A→Z
+                },
             ])
             ->get()
             ->toArray();

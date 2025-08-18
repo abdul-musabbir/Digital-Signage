@@ -5,7 +5,7 @@ import notes from './notes'
 import scrumboard from './scrumboard'
 import todo from './todo'
 /**
-* @see routes/dashboard.php:20
+* @see routes/dashboard.php:22
 * @route '/dashboard/apps'
 */
 export const apps = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -22,7 +22,7 @@ apps.definition = {
 }
 
 /**
-* @see routes/dashboard.php:20
+* @see routes/dashboard.php:22
 * @route '/dashboard/apps'
 */
 apps.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -30,7 +30,7 @@ apps.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
 }
 
 /**
-* @see routes/dashboard.php:20
+* @see routes/dashboard.php:22
 * @route '/dashboard/apps'
 */
 apps.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -42,7 +42,7 @@ apps.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 })
 
 /**
-* @see routes/dashboard.php:20
+* @see routes/dashboard.php:22
 * @route '/dashboard/apps'
 */
 apps.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -54,7 +54,7 @@ apps.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 })
 
 /**
-* @see routes/dashboard.php:27
+* @see routes/dashboard.php:29
 * @route '/dashboard/help-center'
 */
 export const comingSoon = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -71,7 +71,7 @@ comingSoon.definition = {
 }
 
 /**
-* @see routes/dashboard.php:27
+* @see routes/dashboard.php:29
 * @route '/dashboard/help-center'
 */
 comingSoon.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -79,7 +79,7 @@ comingSoon.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) =
 }
 
 /**
-* @see routes/dashboard.php:27
+* @see routes/dashboard.php:29
 * @route '/dashboard/help-center'
 */
 comingSoon.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -91,7 +91,7 @@ comingSoon.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): 
 })
 
 /**
-* @see routes/dashboard.php:27
+* @see routes/dashboard.php:29
 * @route '/dashboard/help-center'
 */
 comingSoon.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {

@@ -1,6 +1,6 @@
 import SidebarNav from '@/pages/settings/components/sidebar-nav';
 import { Head } from '@inertiajs/react';
-import { IconBrowserCheck, IconNotification, IconPalette, IconTool, IconUser } from '@tabler/icons-react';
+import { IconUser } from '@tabler/icons-react';
 
 import { Main } from '@/components/layout';
 import { AppSidebar } from '@/components/layout/app-sidebar';
@@ -80,24 +80,24 @@ const sidebarNavItems = [
         icon: <IconUser size={18} />,
         href: '/dashboard/settings',
     },
-    {
-        title: 'Account',
-        icon: <IconTool size={18} />,
-        href: '/dashboard/settings/account',
-    },
-    {
-        title: 'Appearance',
-        icon: <IconPalette size={18} />,
-        href: '/dashboard/settings/appearance',
-    },
-    {
-        title: 'Notifications',
-        icon: <IconNotification size={18} />,
-        href: '/dashboard/settings/notifications',
-    },
-    {
-        title: 'Display',
-        icon: <IconBrowserCheck size={18} />,
-        href: '/dashboard/settings/display',
-    },
+    // {
+    //     title: 'Account',
+    //     icon: <IconTool size={18} />,
+    //     href: '/dashboard/settings/account',
+    // },
+    // {
+    //     title: 'Appearance',
+    //     icon: <IconPalette size={18} />,
+    //     href: '/dashboard/settings/appearance',
+    // },
+    // {
+    //     title: 'Notifications',
+    //     icon: <IconNotification size={18} />,
+    //     href: '/dashboard/settings/notifications',
+    // },
+    // {
+    //     title: 'Display',
+    //     icon: <IconBrowserCheck size={18} />,
+    //     href: '/dashboard/settings/display',
+    // },
 ];

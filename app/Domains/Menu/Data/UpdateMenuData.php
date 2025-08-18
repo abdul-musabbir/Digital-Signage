@@ -9,6 +9,7 @@ use Spatie\LaravelData\Data;
 class UpdateMenuData extends Data
 {
     public function __construct(
-        public readonly string $title
+        public readonly string $title,
+        public readonly ?array $image = null,
     ) {}
 }

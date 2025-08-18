@@ -29,6 +29,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'address',
+        'avatar'
     ];
 
     public function menus(): HasMany

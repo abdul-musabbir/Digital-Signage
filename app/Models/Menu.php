@@ -25,6 +25,7 @@ class Menu extends Model
         'google_drive_url',
         'mime_type',
         'size',
+        'thumbnail',
         'description',
         'uploaded_at',
         'created_at',

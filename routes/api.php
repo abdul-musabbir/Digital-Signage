@@ -3,9 +3,12 @@
 declare(strict_types=1);
 
 use App\Domains\Api\Actions\LoginAction;
+use App\Domains\Api\Actions\LogoutAction;
 use App\Domains\Api\Actions\StreamVideo;
+use App\Domains\Api\Lib\ServeImage;
 use App\Domains\Api\Utils\GetMenus;
 use App\Domains\Api\Utils\GetUser;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {
@@ -16,7 +19,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/menus', GetMenus::class);
 
     // stream video
-    Route::get('/stream/{menu:google_drive_id}', StreamVideo::class);
+    Route::get('/stream/{menu:google_drive_id}', StreamVideo::class)->name('api.stream.video');
 
     // CORS preflight for streaming
     Route::options('/stream/{menu:google_drive_id}', function () {
@@ -29,6 +32,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
             'Cache-Control' => 'public, max-age=86400',
         ]);
     });
+
+    // serve image
+    Route::get('/preview/{fileId}', ServeImage::class)->name('api.preview.image');
+
+    Route::post('/logout', LogoutAction::class);
 });
 
 // login method

@@ -93,20 +93,20 @@ class ManageDynamicPage
         }
     }
 
-    public function stream(string $id, Request $request): StreamedResponse
+    public function stream(Request $request, Menu $menu): StreamedResponse
     {
         DB::disconnect();
         session()->save();
         session_write_close();
 
         // Get Google Drive file info to validate it exists
-        $fileInfo = $this->drive->getFileInfo($id);
+        $fileInfo = $this->drive->getFileInfo($menu->google_drive_id);
         if (! $fileInfo) {
             abort(404, 'Video not found');
         }
 
         // Build Google Drive API URL for media download
-        $url = "https://www.googleapis.com/drive/v3/files/{$id}?alt=media";
+        $url = "https://www.googleapis.com/drive/v3/files/{$menu->google_drive_id}?alt=media";
 
         $client = new Client;
 

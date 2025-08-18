@@ -79,7 +79,7 @@ index.head = (args: { menu: string | { google_drive_id: string } } | [menu: stri
 * @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:96
 * @route '/dashboard/menu/stream/{menu}'
 */
-export const stream = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+export const stream = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'get',
 } => ({
@@ -97,7 +97,7 @@ stream.definition = {
 * @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:96
 * @route '/dashboard/menu/stream/{menu}'
 */
-stream.url = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
+stream.url = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { menu: args }
     }
@@ -128,7 +128,7 @@ stream.url = (args: { menu: string | number | { google_drive_id: string | number
 * @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:96
 * @route '/dashboard/menu/stream/{menu}'
 */
-stream.get = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+stream.get = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'get',
 } => ({
@@ -141,7 +141,7 @@ stream.get = (args: { menu: string | number | { google_drive_id: string | number
 * @see app/Domains/Menu/Pages/View/ManageDynamicPage.php:96
 * @route '/dashboard/menu/stream/{menu}'
 */
-stream.head = (args: { menu: string | number | { google_drive_id: string | number } } | [menu: string | number | { google_drive_id: string | number } ] | string | number | { google_drive_id: string | number }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
+stream.head = (args: { menu: string | { google_drive_id: string } } | [menu: string | { google_drive_id: string } ] | string | { google_drive_id: string }, options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
     url: string,
     method: 'head',
 } => ({

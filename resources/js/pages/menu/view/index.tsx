@@ -102,8 +102,6 @@ export default function Index({ video, error }: VideoPlayerProps) {
                             </div>
                         </div>
                     )}
-
-                    <video src={video?.streamingUrl} controls></video>
                 </div>
             </Main>
         </AuthenticatedLayout>

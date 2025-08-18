@@ -17,6 +17,10 @@ export function NavUser() {
     const { isMobile } = useSidebar();
     const {
         auth: { user },
+    }: {
+        auth: {
+            user: any;
+        };
     } = usePage().props;
     return (
         <SidebarMenu>
@@ -25,8 +29,14 @@ export function NavUser() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                             <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={''} alt={user.name} />
-                                <AvatarFallback className="rounded-lg">SN</AvatarFallback>
+                                <AvatarImage src={user?.avatar} alt={user.name} />
+                                <AvatarFallback className="rounded-lg">
+                                    {user.name
+                                        .split(' ')
+                                        .slice(0, 2)
+                                        .map((word: string) => word[0])
+                                        .join('')}
+                                </AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
                                 <span className="truncate font-semibold">{user.name}</span>
@@ -48,8 +58,8 @@ export function NavUser() {
                                     <AvatarFallback className="rounded-lg">
                                         {user.name
                                             .split(' ')
-                                            .slice(0, 1)
-                                            .map((word) => word[0])
+                                            .slice(0, 2)
+                                            .map((word: string) => word[0])
                                             .join('')}
                                     </AvatarFallback>
                                 </Avatar>

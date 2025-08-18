@@ -61,6 +61,8 @@ return new class extends Migration
                 ->comment('File size in bytes');
 
             // Optional description or additional notes about this menu item
+            $table->string('thumbnail')
+                ->nullable();
             $table->text('description')
                 ->nullable()
                 ->comment('Additional description or notes');

@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import DeleteMenuComponent from './delete-menu';
 import EditMenu from './edit-menu';
+import { PreviewImage } from './preview-image';
 import { Link } from '@inertiajs/react';
 import { Calendar, Eye, FileText, HardDrive, ImageIcon, MoreVertical, Play } from 'lucide-react';
 
@@ -17,6 +19,7 @@ interface FileItem {
     type: 'image' | 'video' | 'file';
     google_drive_url?: string;
     google_drive_id: string;
+    thumbnail: string;
     size: number;
     created_at: string;
     extension?: string;
@@ -33,7 +36,7 @@ interface FileCardProps {
 }
 
 interface ProfessionalFileCardsProps {
-    menu: Menu;
+    menu: Menu | any;
 }
 
 interface TypeStyles {
@@ -58,7 +61,7 @@ const FileCard: React.FC<FileCardProps> = ({ file }) => {
             return (
                 <div className="relative h-48 w-full overflow-hidden bg-gray-100">
                     <img
-                        src={file.google_drive_url || ''}
+                        src={route('preview.image', file.google_drive_id) || ''}
                         alt={file.name}
                         className="h-full w-full object-cover transition-all duration-700 ease-out"
                     />
@@ -74,9 +77,18 @@ const FileCard: React.FC<FileCardProps> = ({ file }) => {
         } else if (file.type === 'video') {
             return (
                 <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="rounded-2xl border border-white/20 bg-white/15 p-6 shadow backdrop-blur-xl">
-                            <Play className="h-12 w-12 text-blue-600 drop-shadow-lg" fill="currentColor" />
+                    <div
+                        className="absolute inset-0 flex items-center justify-center"
+                        style={{
+                            backgroundImage: `url(${route('preview.image', file.thumbnail)})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                        }}
+                    >
+                        <div className="rounded-full border border-white/20 bg-white bg-opacity-40 p-4 shadow backdrop-blur-xl">
+                            {/* <img src={thumbnail.url} className="h-full w-full" alt="" /> */}
+                            <Play className="h-8 w-8 text-blue-600 drop-shadow-lg" fill="currentColor" />
                         </div>
                     </div>
 
@@ -154,6 +166,8 @@ const FileCard: React.FC<FileCardProps> = ({ file }) => {
 
     const typeStyles = getTypeStyles();
 
+    const [open, setOpen] = useState(false);
+
     return (
         <Card className="overflow-hidden">
             <CardContent className="p-0">{renderPreview()}</CardContent>
@@ -202,18 +216,24 @@ const FileCard: React.FC<FileCardProps> = ({ file }) => {
                     {/* Action Buttons */}
                     <div className="grid grid-cols-2 gap-2">
                         <div className="grid grid-cols-2 gap-1.5">
-                            <Link
-                                href={`${window.location.pathname}/${file.google_drive_id}`}
-                                className={cn(
-                                    buttonVariants({ variant: 'outline', size: 'sm' }),
-                                    'h-9 rounded-lg px-2 text-xs font-medium transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700',
-                                )}
-                            >
-                                <Eye className="mr-1 h-3.5 w-3.5" />
-                                View
-                            </Link>
+                            {file.type === 'image' ? (
+                                <PreviewImage id={file?.google_drive_id} />
+                            ) : file.type === 'video' ? (
+                                <Link
+                                    href={`${window.location.pathname}/${file.google_drive_id}`}
+                                    className={cn(
+                                        buttonVariants({ variant: 'outline', size: 'sm' }),
+                                        'h-9 rounded-lg px-2 text-xs font-medium transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700',
+                                    )}
+                                >
+                                    <Eye className="mr-1 h-3.5 w-3.5" />
+                                    View
+                                </Link>
+                            ) : (
+                                ''
+                            )}
 
-                            <EditMenu id={Number(file.id)} title={file.name} />
+                            <EditMenu id={Number(file.id)} title={file.name} type={file.type} />
                         </div>
 
                         <div className="grid grid-cols-2 gap-1.5">
@@ -234,7 +254,7 @@ const ProfessionalFileCards: React.FC<ProfessionalFileCardsProps> = ({ menu }) =
             </div>
             <Separator className="mb-4 mt-2" />
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {menu.menus.map((file) => (
+                {menu.menus.map((file: any) => (
                     <FileCard key={file.id} file={file} />
                 ))}
             </div>

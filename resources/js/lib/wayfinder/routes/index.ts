@@ -319,7 +319,8 @@ logout.post = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 })
 
 /**
-* @see routes/dashboard.php:9
+* @see \App\Domains\Dashboard\Pages\ManageDashboardPage::dashboard
+* @see app/Domains/Dashboard/Pages/ManageDashboardPage.php:9
 * @route '/dashboard'
 */
 export const dashboard = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -336,7 +337,8 @@ dashboard.definition = {
 }
 
 /**
-* @see routes/dashboard.php:9
+* @see \App\Domains\Dashboard\Pages\ManageDashboardPage::dashboard
+* @see app/Domains/Dashboard/Pages/ManageDashboardPage.php:9
 * @route '/dashboard'
 */
 dashboard.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) => {
@@ -344,7 +346,8 @@ dashboard.url = (options?: { query?: QueryParams, mergeQuery?: QueryParams }) =>
 }
 
 /**
-* @see routes/dashboard.php:9
+* @see \App\Domains\Dashboard\Pages\ManageDashboardPage::dashboard
+* @see app/Domains/Dashboard/Pages/ManageDashboardPage.php:9
 * @route '/dashboard'
 */
 dashboard.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
@@ -356,7 +359,8 @@ dashboard.get = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {
 })
 
 /**
-* @see routes/dashboard.php:9
+* @see \App\Domains\Dashboard\Pages\ManageDashboardPage::dashboard
+* @see app/Domains/Dashboard/Pages/ManageDashboardPage.php:9
 * @route '/dashboard'
 */
 dashboard.head = (options?: { query?: QueryParams, mergeQuery?: QueryParams }): {

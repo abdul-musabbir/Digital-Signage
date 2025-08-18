@@ -9,8 +9,8 @@ use App\Domains\Menu\Pages\ManageMenuPage;
 use App\Domains\Menu\Pages\View\ManageDynamicPage;
 use Illuminate\Support\Facades\Route;
 
-// Route::middleware(['auth', 'optimize.video'])
-Route::middleware(['auth'])
+Route::middleware(['auth', 'optimize.video'])
+    // Route::middleware(['auth'])
     ->prefix('dashboard/menu')
     ->name('menu.')
     ->group(function () {
@@ -23,13 +23,13 @@ Route::middleware(['auth'])
 
         // Main Menu Page - instant load
         Route::get('/', ManageMenuPage::class)
-            ->name('index');
-        // ->middleware('prevent.duplicate');
+            ->name('index')
+            ->middleware('prevent.duplicate');
 
         // Video View Page - ZERO reload protection
         Route::get('/{menu:google_drive_id}', [ManageDynamicPage::class, 'index'])
-            ->name('view');
-        // ->middleware(['prevent.duplicate', 'throttle:60,1']);
+            ->name('view')
+            ->middleware(['prevent.duplicate', 'throttle:60,1']);
 
         // update menu
         Route::put('/update/{menu:id}', UpdateMenu::class)->name('update');
@@ -67,6 +67,6 @@ Route::middleware(['auth'])
 
         // File upload
         Route::post('/upload', UploadFiles::class)
-            ->name('upload');
-        // ->middleware('prevent.duplicate');
+            ->name('upload')
+            ->middleware('prevent.duplicate');
     });
